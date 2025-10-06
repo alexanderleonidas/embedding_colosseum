@@ -1,4 +1,4 @@
-# embedding_colosseum
+# Embedding Strategies for High-Dimensional Imaging in Quantum Machine Learning Pipelines
 
 To start, download [uv](https://docs.astral.sh/uv/getting-started/installation/) and execute `uv sync` in your terminal.
 
