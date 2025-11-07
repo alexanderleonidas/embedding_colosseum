@@ -5,6 +5,9 @@ import tensorflow as tf
 
 class MNISTDataLoader:
 
+    def __init__(self):
+        pass
+
     def load_and_resize_images(self, pixels=28):
 
         # Define the desired size for the images
