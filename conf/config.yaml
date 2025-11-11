@@ -1,0 +1,18 @@
+defaults:
+  - _self_
+  - model: default
+  - override hydra/job_logging: custom
+  - override hydra/hydra_logging: default
+  - override hydra/launcher: joblib # For parallelization
+
+training:
+  steps: 50
+
+
+# This part can later be used to start the grid search
+hydra:
+  searchpath:
+    - file://conf/hydra/job_logging/
+  # mode: MULTIRUN
+  # sweeper:
+  #   params:

@@ -1,0 +1,3 @@
+__target__: src.model.VariationalClassifier.VariationalClassifier
+num_qubits: 4
+num_layers: 2

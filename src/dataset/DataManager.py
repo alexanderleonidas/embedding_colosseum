@@ -4,42 +4,77 @@ from PIL import Image
 from torch.utils.data import DataLoader, random_split
 from torchvision import datasets, transforms
 
+
 class DataManager:
     """
     DataManager Data Manager for MNIST and EMNIST datasets.
     """
-    def __init__(self, batch_size: int, seed: int, dataset='mnist', transform=None, pixel_size=None):
+
+    def __init__(
+        self,
+        batch_size: int,
+        seed: int,
+        dataset="mnist",
+        transform=None,
+        pixel_size=None,
+    ):
         self.batch_size = batch_size
         self.generator = torch.Generator().manual_seed(seed)
-        if transform == 'augmented':
-            self.transform = transforms.Compose([
-                transforms.RandomHorizontalFlip(),
-                transforms.RandomRotation(30),
-                transforms.ToTensor(),
-                transforms.Normalize((0.5,), (0.5,))
-            ])
-        elif transform == 'noised':
+        if transform == "augmented":
+            self.transform = transforms.Compose(
+                [
+                    transforms.RandomHorizontalFlip(),
+                    transforms.RandomRotation(30),
+                    transforms.ToTensor(),
+                    transforms.Normalize((0.5,), (0.5,)),
+                ]
+            )
+        elif transform == "noised":
             noise_level = 0.2
-            self.transform = transforms.Compose([
-                transforms.ToTensor(),
-                transforms.Lambda(lambda x: torch.clamp(x + noise_level * torch.randn_like(x), 0.0, 1.0)),
-                transforms.Normalize((0.5,), (0.5,))
-            ])
+            self.transform = transforms.Compose(
+                [
+                    transforms.ToTensor(),
+                    transforms.Lambda(
+                        lambda x: torch.clamp(
+                            x + noise_level * torch.randn_like(x), 0.0, 1.0
+                        )
+                    ),
+                    transforms.Normalize((0.5,), (0.5,)),
+                ]
+            )
         else:
             self.transform = transforms.Compose([transforms.ToTensor()])
 
         self.dataset_name = dataset
         self.full_train, self.test_ds = self._get_dataset(dataset)
-        self.full_train.data = [self.resize_image(image, pixel_size) for image in self.full_train.data]
-        self.test_ds.data = [self.resize_image(image, pixel_size) for image in self.test_ds.data]
+        self.full_train.data = [
+            self.resize_image(image, pixel_size) for image in self.full_train.data
+        ]
+        self.test_ds.data = [
+            self.resize_image(image, pixel_size) for image in self.test_ds.data
+        ]
 
     def _get_dataset(self, dataset):
-        if dataset == 'mnist':
-            full_train = datasets.MNIST(root='./data', train=True, download=True, transform=self.transform)
-            test_ds = datasets.MNIST(root='./data', train=False, download=True, transform=transforms.ToTensor())
-        elif dataset == 'fashion':
-            full_train = datasets.FashionMNIST(root='./data', train=True, download=True, transform=self.transform)
-            test_ds = datasets.FashionMNIST(root='./data', train=False, download=True, transform=transforms.ToTensor())
+        if dataset == "mnist":
+            full_train = datasets.MNIST(
+                root="./data", train=True, download=True, transform=self.transform
+            )
+            test_ds = datasets.MNIST(
+                root="./data",
+                train=False,
+                download=True,
+                transform=transforms.ToTensor(),
+            )
+        elif dataset == "fashion":
+            full_train = datasets.FashionMNIST(
+                root="./data", train=True, download=True, transform=self.transform
+            )
+            test_ds = datasets.FashionMNIST(
+                root="./data",
+                train=False,
+                download=True,
+                transform=transforms.ToTensor(),
+            )
         else:
             raise ValueError("Unsupported dataset. Choose 'mnist', or 'fashion'.")
 
@@ -59,7 +94,9 @@ class DataManager:
             img = image
             arr = None
         else:
-            raise TypeError("image must be a PIL.Image.Image, numpy.ndarray, or torch.Tensor")
+            raise TypeError(
+                "image must be a PIL.Image.Image, numpy.ndarray, or torch.Tensor"
+            )
 
         # Convert the numpy array to PIL Image if needed
         if arr is not None:
@@ -99,11 +136,16 @@ class DataManager:
 
         :return: Tuple of (train_loader, test_loader)
         """
-        train_loader = DataLoader(self.full_train, batch_size=self.batch_size, shuffle=True)
-        test_loader = DataLoader(self.test_ds, batch_size=self.batch_size, shuffle=False)
+        train_loader = DataLoader(
+            self.full_train, batch_size=self.batch_size, shuffle=True
+        )
+        test_loader = DataLoader(
+            self.test_ds, batch_size=self.batch_size, shuffle=False
+        )
         return train_loader, test_loader
 
 
-Dataloader = DataManager(batch_size=100, seed=42, dataset='mnist', pixel_size=18)
-train_loader, test_loader = Dataloader.get_loaders()
-print("hello")
+if __name__ == "__main__":
+    Dataloader = DataManager(batch_size=100, seed=42, dataset="mnist", pixel_size=18)
+    train_loader, test_loader = Dataloader.get_loaders()
+    print("hello")
