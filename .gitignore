@@ -151,4 +151,4 @@ cython_debug/
 %LOCALAPPDATA%/
 
 #data
-data
+data/*
