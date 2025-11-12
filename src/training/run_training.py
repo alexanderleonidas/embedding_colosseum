@@ -97,3 +97,7 @@ def run_classifier(cfg):
 
     acc_test = accuracy(Y_test, predictions_test)
     log.info(f"Accuracy on unseen data: {acc_test}")
+
+    # TODO add correct validation loss for hyperparameter tuning
+    val_loss = current_cost
+    return val_loss

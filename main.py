@@ -14,7 +14,8 @@ log = logging.getLogger(__name__)
 def main(cfg: DictConfig) -> None:
     log.info(OmegaConf.to_yaml(cfg))
 
-    run_classifier(cfg=cfg)
+    loss = run_classifier(cfg=cfg)
+    return loss
 
 
 if __name__ == "__main__":

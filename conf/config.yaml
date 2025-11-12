@@ -1,18 +1,29 @@
 defaults:
   - _self_
   - model: default
+  - training: base
   - override hydra/job_logging: custom
   - override hydra/hydra_logging: default
   - override hydra/launcher: joblib # For parallelization
 
-training:
-  steps: 50
-
+  # Hyperparameter optimization
+  - override hydra/sweeper: optuna
+  - override hydra/sweeper/sampler: tpe
 
 # This part can later be used to start the grid search
 hydra:
   searchpath:
     - file://conf/hydra/job_logging/
-  # mode: MULTIRUN
-  # sweeper:
-  #   params:
+  mode: MULTIRUN
+  sweeper:
+    sampler:
+      seed: 42
+    direction: minimize
+    study_name: Hyperparameter_Tuning
+    storage: null
+    n_trials: 20
+    n_jobs: 5
+    params:
+      training.steps: range(30, 60, step=10)
+      model.num_qubits: range(2, 5, step=1)
+      model.num_layers: range(1, 4, step=1)
