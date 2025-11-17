@@ -25,6 +25,7 @@ class FRQI:
         num_pos_qubits = self.num_qubits - 1
         color_wire = 0      # wire index of the control qubit in the circuit
         pos_wires = list(range(1, self.num_qubits)) # wire indexes of the position qubits in the circuit
+        #pos_wires = list(range(1, self.num_qubits))[::-1]
 
         @qml.qnode(self.device)
         def circuit():
@@ -32,21 +33,29 @@ class FRQI:
             for w in pos_wires:
                 qml.Hadamard(wires=w)
 
-            # encoding each pixels brightness into the color qubit, slightly differs from old Qiskit implementation by using qml.ctrl() on control qubits for rotations instead of X-flips + mcry 
-            # the resulting embeddings between qml/qiskit are equivalent between, but the wire indexing differs when comparing the amplitudes
+            # encoding each pixels brightness into the color qubit
+            # now matches the Qiskit implementation more closely, differs only in which bits are flipped before/after the rotation
             for i, theta in enumerate(angles):
 
                 binary = np.binary_repr(i, width=num_pos_qubits)  # converting i to binary/basis states, to iterate over each state's position qubits
-                control_wires = []                 # and identify the position of control qubits within that will act on rotations
-                for j, bit in enumerate(binary):
-                    if bit == "1":
-                        control_wires.append(pos_wires[j])
 
-                # applying controlled RY rotations on the color qubit, entangling it with position qubits of each basis state based on the corresponding angles
-                if control_wires:   # rotates the color qubit entangling it with the position qubits that act as control for the given basis state
-                    qml.ctrl(qml.RY, control=control_wires)(2 * theta, wires=color_wire) 
-                else:  
-                    qml.RY(2 * theta, wires=color_wire)   # plain RY rotation case for the first pixel with no control qubits (index 0/basis state 00..)
+                # the controlled rotations activate when all position qubits are activated
+                # in the Qiskit impl. mcry() was used with the qubits being flipped before/after when their the corr. bit string == 1, 
+                # so the assumption is mcry() rotates when all control qubits == 0
+                # In this implementation we invert the logic and flip the qubits when their value == 0, so the rotation is done with the state being all 1s
+                # this results in equivalent embedding amplitudes as the old qiskit version, just the order of basis states is reversed
+                
+                for wire, bit in zip(pos_wires, binary): # flipping the qubits which bit string == 0
+                    if bit == "0":           
+                        qml.PauliX(wires=wire)
+
+                # the state is in all 1s when the controlled RY is applied
+                qml.ctrl(qml.RY, control=pos_wires)(2 * theta, wires=color_wire)
+
+                # the qubits corresponding to 0 bits in the bitstring are unflipped
+                for wire, bit in zip(pos_wires, binary):
+                    if bit == "0":
+                        qml.PauliX(wires=wire)
 
             return qml.state()  # the final state - quantum embedding of the image
 
