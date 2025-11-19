@@ -53,13 +53,17 @@ def run_classifier(cfg):
         dataset="mnist",
         pixel_size=32,  # Set the pixels to 32x32
     )
-    train_loader, validation_loader, test_loader = dm.get_loaders()
-
+    train_loader, validation_loader, test_loader = dm.get_loaders(val_split=0.2)
+    # TODO Adjust model for number of output classes:
+    # UserWarning: Using a target size (torch.Size([10])) that is different to the input size (torch.Size([1])). This will likely lead to incorrect results due to broadcasting. Please ensure they have the same size.
+    #   return F.mse_loss(input, target, reduction=self.reduction)
     model = VariationalClassifier(
         num_qubits=cfg.model.num_qubits,
         num_layers=cfg.model.num_layers,
-        # state_preparation=FRQI(num_pixels=2).state_preparation,  # TODO parameterize
-        state_preparation=NEQR(num_pixels=2).state_preparation,  # TODO parameterize
+        state_preparation=FRQI(
+            num_pixels=32 * 32 * 1
+        ).state_preparation,  # TODO parameterize
+        # state_preparation=NEQR(num_pixels=2).state_preparation,  # TODO parameterize
     )
     log.info(f"Weights: {model.weights}")
     log.info(f"Bias: {model.bias}")
@@ -73,7 +77,8 @@ def run_classifier(cfg):
             # Get the loss
             def closure():
                 optimizer.zero_grad()
-                loss = model.cost(X.to(device), y.to(device))
+                # Ensure tensors are the expected dtype for autograd
+                loss = model.cost(X.to(device).double(), y.to(device).double())
                 loss.backward()
                 return loss
 
@@ -93,10 +98,11 @@ def run_classifier(cfg):
         # Validation loop
         val_acc, val_loss = 0, 0
         for batch, (X, y) in enumerate(validation_loader):
-            val_loss += model.cost(X)
-            val_acc += accuracy(
-                labels=y, predictions=torch.sign(model.classify(X))
-            ) / len(X)  # Normalize the accuracy
+            # Cast validation tensors to double as well
+            val_loss += model.cost(X.to(device).double(), y.to(device).double())
+            # Compute predictions per-sample in the batch
+            batch_preds = [torch.sign(model.classify(x)) for x in X]
+            val_acc += accuracy(labels=y, predictions=batch_preds) / len(X)
 
         val_loss = val_loss / len(validation_loader)
         log.info(

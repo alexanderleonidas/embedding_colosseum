@@ -80,8 +80,8 @@ class FRQI:
 
     # This state_preparation was copied from the circuit above
     # to be used in the VQC
-    def state_preparation(self, X):
-        pixels = X
+    def state_preparation(self, X: torch.Tensor):
+        pixels = X.flatten()
 
         # the DataManager should handle normalization in resize_images, but just in case it is not always so
         # if pixels.max() > 1.5:
@@ -89,9 +89,10 @@ class FRQI:
         #     pixels = pixels / 255.0
 
         # angles = np.interp(pixels, (0, 1), (0, np.pi / 2))
-        angles = torch.lerp(
-            torch.tensor(0.0).to(device), torch.tensor(math.pi / 2).to(device), pixels
-        )
+        # Ensure lerp endpoints have the same dtype and device as `pixels`
+        zero = torch.tensor(0.0, dtype=pixels.dtype, device=pixels.device)
+        pi2 = torch.tensor(math.pi / 2, dtype=pixels.dtype, device=pixels.device)
+        angles = torch.lerp(zero, pi2, pixels)
 
         num_pos_qubits = self.num_qubits - 1
         color_wire = 0  # wire index of the control qubit in the circuit
