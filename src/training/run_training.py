@@ -7,6 +7,7 @@ from rich import print
 
 from src.dataset.DataManager import DataManager
 from src.embeddings.FRQI_PennyLane import FRQI
+from src.embeddings.NEQR_PennyLane import NEQR
 from src.model.VariationalClassifier import VariationalClassifier
 
 log = logging.getLogger(__name__)
@@ -57,7 +58,8 @@ def run_classifier(cfg):
     model = VariationalClassifier(
         num_qubits=cfg.model.num_qubits,
         num_layers=cfg.model.num_layers,
-        state_preparation=FRQI(num_pixels=2).state_preparation,  # TODO parameterize
+        # state_preparation=FRQI(num_pixels=2).state_preparation,  # TODO parameterize
+        state_preparation=NEQR(num_pixels=2).state_preparation,  # TODO parameterize
     )
     log.info(f"Weights: {model.weights}")
     log.info(f"Bias: {model.bias}")

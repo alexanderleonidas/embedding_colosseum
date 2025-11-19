@@ -129,5 +129,4 @@ class FRQI:
             for wire, bit in zip(pos_wires, binary):
                 if bit == "0":
                     qml.PauliX(wires=wire)
-
-        return qml.state()  # the final state - quantum embedding of the image
+        pass

@@ -1,7 +1,8 @@
 import math
+
 import pennylane as qml
-from pennylane import numpy as np
 import torch
+from pennylane import numpy as np
 
 
 class NEQR:
@@ -10,11 +11,12 @@ class NEQR:
     # Intensity qubits: encode 8-bit grayscale value (|color>)
     # State: (1/sqrt(N)) \sm_i |pos_i> |color_i>
 
-    def __init__(self, num_pixels, bit_depth: int = 8):        # bit_depth (int): number of bits for grayscale (e.g. 8 for 0–255)
-
+    def __init__(
+        self, num_pixels, bit_depth: int = 8
+    ):  # bit_depth (int): number of bits for grayscale (e.g. 8 for 0–255)
         self.num_pixels = num_pixels
         self.num_pos_qubits = int(math.log2(num_pixels))
-        assert 2 ** self.num_pos_qubits == num_pixels, "num_pixels must be a power of 2"
+        assert 2**self.num_pos_qubits == num_pixels, "num_pixels must be a power of 2"
 
         self.bit_depth = bit_depth
         self.num_color_qubits = bit_depth
@@ -23,7 +25,7 @@ class NEQR:
         self.device = qml.device("default.qubit", wires=self.num_qubits)
 
     def preprocess(self, pixels):
-        #Convert pixels to integer grayscale values in [0, 2^bit_depth - 1].
+        # Convert pixels to integer grayscale values in [0, 2^bit_depth - 1].
 
         pixels = np.array(pixels, dtype=float)
 
@@ -33,7 +35,7 @@ class NEQR:
             pixels = pixels / 255.0
 
         # Now pixels in [0,1] → scale to [0, 2^bit_depth - 1]
-        max_val = (2 ** self.bit_depth) - 1
+        max_val = (2**self.bit_depth) - 1
         pixels_scaled = np.rint(pixels * max_val).astype(int)
         pixels_scaled = np.clip(pixels_scaled, 0, max_val)
 
@@ -41,8 +43,9 @@ class NEQR:
 
     def encode(self, pixel_values):
         pixel_values = np.array(pixel_values, dtype=int)
-        assert len(pixel_values) == self.num_pixels, \
+        assert len(pixel_values) == self.num_pixels, (
             "pixel_values length must match num_pixels."
+        )
 
         # Define qubit indices: [0..num_pos_qubits-1] = position, [..] = color
         pos_wires = list(range(self.num_pos_qubits))
@@ -50,7 +53,7 @@ class NEQR:
 
         @qml.qnode(self.device)
         def circuit():
-            # Create superposition 
+            # Create superposition
             for w in pos_wires:
                 qml.Hadamard(wires=w)
 
@@ -71,9 +74,11 @@ class NEQR:
 
                 color_bits = np.binary_repr(val, width=self.num_color_qubits)
 
-                for color_idx, bit in enumerate(color_bits[::-1]): 
+                for color_idx, bit in enumerate(color_bits[::-1]):
                     if bit == "1":
-                        qml.ctrl(qml.PauliX, control=pos_wires)(wires=color_wires[color_idx])
+                        qml.ctrl(qml.PauliX, control=pos_wires)(
+                            wires=color_wires[color_idx]
+                        )
 
                 for bit_idx, bit in enumerate(pos_bits):
                     if bit == "1":
@@ -82,7 +87,6 @@ class NEQR:
             return qml.state()
 
         return circuit
-    
 
     # I add here also the state_preparation to use for the VQC
     # This state_preparation was copied from encode()
@@ -97,7 +101,7 @@ class NEQR:
             pixels = pixels / 255.0
 
         # Scale to integer grayscale in [0, 2^bit_depth - 1]
-        max_val = (2 ** self.bit_depth) - 1
+        max_val = (2**self.bit_depth) - 1
         pixels = torch.clamp(pixels, 0.0, 1.0)
         pixel_values = torch.round(pixels * max_val).to(torch.int64)
 
@@ -138,5 +142,4 @@ class NEQR:
             for wire, bit in zip(pos_wires, pos_bits):
                 if bit == "1":
                     qml.PauliX(wires=wire)
-
-        return qml.state()
+        pass
