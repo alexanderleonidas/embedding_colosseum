@@ -63,6 +63,7 @@ def run_classifier(cfg):
         state_preparation=FRQI(
             num_pixels=32 * 32 * 1
         ).state_preparation,  # TODO parameterize
+        num_classes=10,
         # state_preparation=NEQR(num_pixels=2).state_preparation,  # TODO parameterize
     )
     log.info(f"Weights: {model.weights}")
@@ -82,7 +83,7 @@ def run_classifier(cfg):
                 loss.backward()
                 return loss
 
-        optimizer.step(closure)
+            optimizer.step(closure)
 
         # Compute accuracy
         predictions = [torch.sign(model.classify(x)) for x in X]

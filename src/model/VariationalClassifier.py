@@ -32,12 +32,13 @@ def _state_preparation(x):
 # Add torch and backprop to be able to run it on a GPU using cuda
 # This also enables us to use the standard pytorch optimizers, and all the other stuff
 @qml.qnode(q_device, interface="torch", diff_method="backprop")
-def _circuit(weights, x, num_qubits, embedding):
+def _circuit(weights, x, num_qubits, embedding, num_classes: int):
     embedding(x)
 
     for layer_weights in weights:
         _layer(layer_weights, num_qubits)
 
+    # return tuple(qml.expval(qml.PauliZ(i)) for i in range(num_classes))
     return qml.expval(qml.PauliZ(0))
 
 
@@ -46,10 +47,12 @@ class VariationalClassifier:
         self,
         num_qubits: int,
         num_layers: int,
+        num_classes: int,
         state_preparation=_state_preparation,
     ):
         self.num_qubits = num_qubits
         self.num_layers = num_layers
+        self.num_classes = num_classes
         torch.random.manual_seed(0)
         self.weights = torch.rand((num_layers, num_qubits, 3), requires_grad=True)
         self.bias = torch.tensor(0.0, requires_grad=True)
@@ -63,6 +66,7 @@ class VariationalClassifier:
                 x=x,
                 num_qubits=self.num_qubits,
                 embedding=self.state_preparation,
+                num_classes=self.num_classes,
             )
             + self.bias
         )
