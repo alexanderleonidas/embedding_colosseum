@@ -85,16 +85,16 @@ def run_classifier(cfg):
 
             optimizer.step(closure)
 
-        # Compute accuracy
-        predictions = [torch.sign(model.classify(x)) for x in X]
+            # Compute accuracy
+            predictions = [torch.sign(model.classify(x)) for x in X]
 
-        current_cost = model.cost(X, Y)
-        acc = accuracy(Y, predictions)
+            current_cost = model.cost(X, Y)
+            acc = accuracy(Y, predictions)
 
-        current = batch * len(X)
-        log.info(
-            f"[{current:>5d}/{train_size:>5d}] | Cost: {current_cost:0.7f} | Accuracy: {acc:0.7f}"
-        )
+            current = batch * len(X)
+            log.info(
+                f"[{current:>5d}/{train_size:>5d}] | Cost: {current_cost:0.7f} | Accuracy: {acc:0.7f}"
+            )
 
         # Validation loop
         val_acc, val_loss = 0, 0
