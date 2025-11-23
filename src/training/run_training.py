@@ -47,26 +47,34 @@ def run_classifier(cfg):
     #for x, y in zip(X, Y):
     #    log.info(f"x = {x}, y = {y}")
 
+    EMBEDDING_TYPE = "FRQI"   # "FRQI", "NEQR", 
+    PIXEL_SIZE = 4   
+
+    if EMBEDDING_TYPE == "FRQI":
+        embedding = FRQI(num_pixels=PIXEL_SIZE*PIXEL_SIZE)
+    elif EMBEDDING_TYPE == "NEQR":
+        embedding = NEQR(num_pixels=PIXEL_SIZE*PIXEL_SIZE)
+    else:
+        raise ValueError("Unknown embedding method")
+
     dm = DataManager(
         batch_size=cfg.training.batch_size,
         seed=cfg.seed,
         dataset="mnist_binary",
-        pixel_size=4,  # set pixel size, determines number of pixels and qubits
+        pixel_size=PIXEL_SIZE,  # pixel size set above
     )
     train_loader, validation_loader, test_loader = dm.get_loaders(
-    train_split=0.7,
-    val_split=0.2,
-    test_split=0.1,
+        train_split=0.7,
+        val_split=0.2,
+        test_split=0.1,
 )
     # TODO Adjust model for number of output classes:
     # UserWarning: Using a target size (torch.Size([10])) that is different to the input size (torch.Size([1])). This will likely lead to incorrect results due to broadcasting. Please ensure they have the same size.
     #   return F.mse_loss(input, target, reduction=self.reduction)
     model = VariationalClassifier(
-        num_qubits=cfg.model.num_qubits,
+        num_qubits=embedding.num_qubits,
         num_layers=cfg.model.num_layers,
-        state_preparation=FRQI(
-            num_pixels=16
-        ).state_preparation,  # TODO parameterize
+        state_preparation= embedding.state_preparation,  # embedding set above in run_classifier
         num_classes=2,
         # state_preparation=NEQR(num_pixels=2).state_preparation,  # TODO parameterize
     )
@@ -80,8 +88,6 @@ def run_classifier(cfg):
     for epoch in range(cfg.training.epochs):
         for batch, (X, y) in enumerate(train_loader):
 
-            if batch == 5:
-                break
             # Computes the loss
             def closure():
                 optimizer.zero_grad()
