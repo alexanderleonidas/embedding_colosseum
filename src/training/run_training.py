@@ -33,27 +33,31 @@ def run_classifier(cfg):
     torch.random.manual_seed(cfg.seed)
     log.info(f"Using {device} to train.")
 
-    data = np.loadtxt("variational_classifier/data/parity_train.txt", dtype=int)
-    X = np.array(data[:, :-1])
-    Y = np.array(data[:, -1])
-    Y = Y * 2 - 1  # shift label from {0, 1} to {-1, 1}
+    #data = np.loadtxt("variational_classifier/data/parity_train.txt", dtype=int)
+    #X = np.array(data[:, :-1])
+    #Y = np.array(data[:, -1])
+    #Y = Y * 2 - 1  # shift label from {0, 1} to {-1, 1}
 
     # If at least one input feature is on cuda, the computation will be done on cuda
-    X = torch.tensor(X, dtype=torch.double).to(device=device)
-    Y = torch.tensor(Y, dtype=torch.double).to(device=device)
-    log.info(X.shape)
-    log.info(Y.shape)
+    #X = torch.tensor(X, dtype=torch.double).to(device=device)
+    #Y = torch.tensor(Y, dtype=torch.double).to(device=device)
+    #log.info(X.shape)
+    #log.info(Y.shape)
 
-    for x, y in zip(X, Y):
-        log.info(f"x = {x}, y = {y}")
+    #for x, y in zip(X, Y):
+    #    log.info(f"x = {x}, y = {y}")
 
     dm = DataManager(
         batch_size=cfg.training.batch_size,
         seed=cfg.seed,
-        dataset="mnist",
-        pixel_size=32,  # Set the pixels to 32x32
+        dataset="mnist_binary",
+        pixel_size=4,  # set pixel size, determines number of pixels and qubits
     )
-    train_loader, validation_loader, test_loader = dm.get_loaders(val_split=0.2)
+    train_loader, validation_loader, test_loader = dm.get_loaders(
+    train_split=0.7,
+    val_split=0.2,
+    test_split=0.1,
+)
     # TODO Adjust model for number of output classes:
     # UserWarning: Using a target size (torch.Size([10])) that is different to the input size (torch.Size([1])). This will likely lead to incorrect results due to broadcasting. Please ensure they have the same size.
     #   return F.mse_loss(input, target, reduction=self.reduction)
@@ -61,9 +65,9 @@ def run_classifier(cfg):
         num_qubits=cfg.model.num_qubits,
         num_layers=cfg.model.num_layers,
         state_preparation=FRQI(
-            num_pixels=32 * 32 * 1
+            num_pixels=16
         ).state_preparation,  # TODO parameterize
-        num_classes=10,
+        num_classes=2,
         # state_preparation=NEQR(num_pixels=2).state_preparation,  # TODO parameterize
     )
     log.info(f"Weights: {model.weights}")
@@ -72,10 +76,13 @@ def run_classifier(cfg):
     optimizer = torch.optim.AdamW([model.weights, model.bias], lr=0.1)
 
     # Training Loop
-    train_size = len(train_loader)
+    total_samples = len(train_loader.dataset)
     for epoch in range(cfg.training.epochs):
         for batch, (X, y) in enumerate(train_loader):
-            # Get the loss
+
+            if batch == 5:
+                break
+            # Computes the loss
             def closure():
                 optimizer.zero_grad()
                 # Ensure tensors are the expected dtype for autograd
@@ -83,29 +90,32 @@ def run_classifier(cfg):
                 loss.backward()
                 return loss
 
-            optimizer.step(closure)
+            loss = optimizer.step(closure)
+            current_cost = loss.item() 
 
             # Compute accuracy
-            predictions = [torch.sign(model.classify(x)) for x in X]
+            predictions = torch.stack([torch.sign(model.classify(x)) for x in X])
+            acc = accuracy(y, predictions)
 
-            current_cost = model.cost(X, Y)
-            acc = accuracy(Y, predictions)
+            current = batch * cfg.training.batch_size
 
-            current = batch * len(X)
             log.info(
-                f"[{current:>5d}/{train_size:>5d}] | Cost: {current_cost:0.7f} | Accuracy: {acc:0.7f}"
+                f"[{current:>5d}/{total_samples:>5d}] | Cost: {current_cost:0.7f} | Accuracy: {acc:0.7f}"
             )
 
         # Validation loop
         val_acc, val_loss = 0, 0
-        for batch, (X, y) in enumerate(validation_loader):
-            # Cast validation tensors to double as well
-            val_loss += model.cost(X.to(device).double(), y.to(device).double())
-            # Compute predictions per-sample in the batch
-            batch_preds = [torch.sign(model.classify(x)) for x in X]
-            val_acc += accuracy(labels=y, predictions=batch_preds) / len(X)
+        for X, y in validation_loader:
+            X = X.to(device).double()
+            y = y.to(device).double()
 
-        val_loss = val_loss / len(validation_loader)
+            val_loss += model.cost(X, y).item()
+
+            preds = torch.stack([torch.sign(model.classify(x)) for x in X])
+            val_acc += accuracy(y, preds)
+
+        val_loss /= len(validation_loader)
+        val_acc /= len(validation_loader)
         log.info(
             f"Validation for epoch {epoch:>3} | Cost: {val_loss:0.7f} | Accuracy: {val_acc:0.7f}"
         )
