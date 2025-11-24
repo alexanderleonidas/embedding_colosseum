@@ -21,6 +21,7 @@ dependencies = [
     "qiskit-ibm-provider>=0.11.0",
     "qiskit-ibmq-provider>=0.19.2",
     "qiskit-machine-learning>=0.7.2",
+    "seaborn>=0.13.2",
     "tensorflow>=2.18.1",
     "torch>=2.9.0",
     "torchvision>=0.24.0",
