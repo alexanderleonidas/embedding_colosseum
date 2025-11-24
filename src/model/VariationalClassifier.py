@@ -1,5 +1,6 @@
 import logging
 
+import matplotlib as mpl
 import pennylane as qml
 import torch
 from pennylane import numpy as np
@@ -48,11 +49,14 @@ class VariationalClassifier:
         num_qubits: int,
         num_layers: int,
         num_classes: int,
+        num_pixels: int = 32,
         state_preparation=_state_preparation,
     ):
         self.num_qubits = num_qubits
         self.num_layers = num_layers
         self.num_classes = num_classes
+        self.num_pixels = num_pixels
+
         torch.random.manual_seed(0)
         self.weights = torch.rand((num_layers, num_qubits, 3), requires_grad=True)
         self.bias = torch.tensor(0.0, requires_grad=True)
@@ -74,3 +78,19 @@ class VariationalClassifier:
     def cost(self, X, Y):
         predictions = torch.stack([self.classify(x) for x in X])
         return self.loss_fn(predictions, Y)
+
+    def save_svg(self, path: str = "circuit.svg", decimals: int = 2):
+        mpl.rcParams["svg.fonttype"] = "none"  # To keep text as text in SVG
+
+        qml.drawer.use_style("sketch")
+        fig, ax = qml.draw_mpl(_circuit, decimals=decimals)(
+            self.weights,
+            torch.tensor([0 for _ in range(self.num_pixels)], dtype=torch.float64).to(
+                device
+            ),
+            self.num_qubits,
+            self.state_preparation,
+            self.num_classes,
+        )
+
+        fig.savefig(path, transparent=True, bbox_inches="tight")

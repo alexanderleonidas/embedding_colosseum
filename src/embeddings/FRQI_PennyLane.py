@@ -82,6 +82,7 @@ class FRQI:
     # to be used in the VQC
     def state_preparation(self, X: torch.Tensor):
         pixels = X.flatten()
+        pixels = pixels.to(device)
 
         # the DataManager should handle normalization in resize_images, but just in case it is not always so
         # if pixels.max() > 1.5:
@@ -90,8 +91,8 @@ class FRQI:
 
         # angles = np.interp(pixels, (0, 1), (0, np.pi / 2))
         # Ensure lerp endpoints have the same dtype and device as `pixels`
-        zero = torch.tensor(0.0, dtype=pixels.dtype, device=pixels.device)
-        pi2 = torch.tensor(math.pi / 2, dtype=pixels.dtype, device=pixels.device)
+        zero = torch.tensor(0.0, dtype=pixels.dtype, device=device)
+        pi2 = torch.tensor(math.pi / 2, dtype=pixels.dtype, device=device)
         angles = torch.lerp(zero, pi2, pixels)
 
         num_pos_qubits = self.num_qubits - 1

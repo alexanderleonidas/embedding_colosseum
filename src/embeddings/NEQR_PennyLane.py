@@ -92,7 +92,7 @@ class NEQR:
     # This state_preparation was copied from encode()
     # to be used inside a VQC (same structure as FRQI.state_preparation)
     def state_preparation(self, X):
-        pixels = X  # torch tensor in [0,1] or [0,255]
+        pixels = X.flatten()  # torch tensor in [0,1] or [0,255]
 
         # --- PREPROCESS (Torch version of preprocess()) ---
         # Normalize if needed

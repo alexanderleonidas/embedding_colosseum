@@ -33,27 +33,27 @@ def run_classifier(cfg):
     torch.random.manual_seed(cfg.seed)
     log.info(f"Using {device} to train.")
 
-    #data = np.loadtxt("variational_classifier/data/parity_train.txt", dtype=int)
-    #X = np.array(data[:, :-1])
-    #Y = np.array(data[:, -1])
-    #Y = Y * 2 - 1  # shift label from {0, 1} to {-1, 1}
+    # data = np.loadtxt("variational_classifier/data/parity_train.txt", dtype=int)
+    # X = np.array(data[:, :-1])
+    # Y = np.array(data[:, -1])
+    # Y = Y * 2 - 1  # shift label from {0, 1} to {-1, 1}
 
     # If at least one input feature is on cuda, the computation will be done on cuda
-    #X = torch.tensor(X, dtype=torch.double).to(device=device)
-    #Y = torch.tensor(Y, dtype=torch.double).to(device=device)
-    #log.info(X.shape)
-    #log.info(Y.shape)
+    # X = torch.tensor(X, dtype=torch.double).to(device=device)
+    # Y = torch.tensor(Y, dtype=torch.double).to(device=device)
+    # log.info(X.shape)
+    # log.info(Y.shape)
 
-    #for x, y in zip(X, Y):
+    # for x, y in zip(X, Y):
     #    log.info(f"x = {x}, y = {y}")
 
-    EMBEDDING_TYPE = "FRQI"   # "FRQI", "NEQR", 
-    PIXEL_SIZE = 4   
+    EMBEDDING_TYPE = "FRQI"  # "FRQI", "NEQR",
+    PIXEL_SIZE = 32
 
     if EMBEDDING_TYPE == "FRQI":
-        embedding = FRQI(num_pixels=PIXEL_SIZE*PIXEL_SIZE)
+        embedding = FRQI(num_pixels=PIXEL_SIZE * PIXEL_SIZE)
     elif EMBEDDING_TYPE == "NEQR":
-        embedding = NEQR(num_pixels=PIXEL_SIZE*PIXEL_SIZE)
+        embedding = NEQR(num_pixels=PIXEL_SIZE * PIXEL_SIZE)
     else:
         raise ValueError("Unknown embedding method")
 
@@ -67,15 +67,16 @@ def run_classifier(cfg):
         train_split=0.7,
         val_split=0.2,
         test_split=0.1,
-)
+    )
     # TODO Adjust model for number of output classes:
     # UserWarning: Using a target size (torch.Size([10])) that is different to the input size (torch.Size([1])). This will likely lead to incorrect results due to broadcasting. Please ensure they have the same size.
     #   return F.mse_loss(input, target, reduction=self.reduction)
     model = VariationalClassifier(
         num_qubits=embedding.num_qubits,
         num_layers=cfg.model.num_layers,
-        state_preparation= embedding.state_preparation,  # embedding set above in run_classifier
+        state_preparation=embedding.state_preparation,  # embedding set above in run_classifier
         num_classes=2,
+        num_pixels=PIXEL_SIZE * PIXEL_SIZE,
         # state_preparation=NEQR(num_pixels=2).state_preparation,  # TODO parameterize
     )
     log.info(f"Weights: {model.weights}")
@@ -87,7 +88,6 @@ def run_classifier(cfg):
     total_samples = len(train_loader.dataset)
     for epoch in range(cfg.training.epochs):
         for batch, (X, y) in enumerate(train_loader):
-
             # Computes the loss
             def closure():
                 optimizer.zero_grad()
@@ -97,7 +97,7 @@ def run_classifier(cfg):
                 return loss
 
             loss = optimizer.step(closure)
-            current_cost = loss.item() 
+            current_cost = loss.item()
 
             # Compute accuracy
             predictions = torch.stack([torch.sign(model.classify(x)) for x in X])
