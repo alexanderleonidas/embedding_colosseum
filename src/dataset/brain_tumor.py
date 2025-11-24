@@ -1,4 +1,5 @@
 import os
+
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
@@ -22,22 +23,31 @@ class BRAINTUMOR(Dataset):
             img = self.transform(img)
         return img, label
 
+
 def extract_brain_tumor_dataset():
     root = "./data/BRAINTUMOR"
     ct_directory = os.path.join(root, "Brain Tumor CT scan Images")
     mri_directory = os.path.join(root, "Brain Tumor MRI Images")
-    classes = ['Healthy', 'Tumor']
+    classes = ["Healthy", "Tumor"]
 
     img_paths = []
     labels = []
-    class_to_label = {'Healthy': 0, 'Tumor': 1}
+    class_to_label = {"Healthy": 0, "Tumor": 1}
     if os.path.isdir(ct_directory) and os.path.isdir(mri_directory):
         for class_name in classes:
             ct_class_path = os.path.join(ct_directory, class_name)
             mri_class_path = os.path.join(mri_directory, class_name)
             if os.path.isdir(ct_class_path) and os.path.isdir(mri_class_path):
-                ct_img_files = [f for f in os.listdir(ct_class_path) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
-                mri_img_files = [f for f in os.listdir(mri_class_path) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+                ct_img_files = [
+                    f
+                    for f in os.listdir(ct_class_path)
+                    if f.lower().endswith((".png", ".jpg", ".jpeg"))
+                ]
+                mri_img_files = [
+                    f
+                    for f in os.listdir(mri_class_path)
+                    if f.lower().endswith((".png", ".jpg", ".jpeg"))
+                ]
                 for ct_img_name in ct_img_files:
                     img_paths.append(os.path.join(ct_class_path, ct_img_name))
                     labels.append(class_to_label[class_name])
@@ -49,6 +59,7 @@ def extract_brain_tumor_dataset():
     # print(f"Tumor (yes): {labels.count(1)} images ({labels.count(1) / len(labels) * 100:.1f}%)")
     # print(f"No Tumor (no): {labels.count(0)} images ({labels.count(0) / len(labels) * 100:.1f}%)")
     return img_paths, labels
+
 
 if __name__ == "__main__":
     img_paths, labels = extract_brain_tumor_dataset()

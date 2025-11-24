@@ -1,7 +1,9 @@
-import torch
 import random
+
 import numpy as onp  # ordinary NumPy
+import torch
 from pennylane import numpy as np
+
 from src.dataset.DataManager import DataManager
 from src.embeddings.NEQR_PennyLane import NEQR
 
@@ -13,7 +15,7 @@ dm = DataManager(batch_size=2, seed=0, dataset="mnist", pixel_size=8)
 train_loader, _ = dm.get_loaders()
 X_batch, y_batch = next(iter(train_loader))
 
-print(f"Pixel tensor shape: {X_batch.shape}") 
+print(f"Pixel tensor shape: {X_batch.shape}")
 
 # Flatten a single image to 1D vector of length num_pixels
 pixels = X_batch[0].view(-1).numpy()

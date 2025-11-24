@@ -23,10 +23,27 @@ class CXR8(Dataset):
             img = self.transform(img)
         return img, label
 
+
 def extract_chest_xray_dataset(binary=False):
     root = "./data/CXR8/images"
     csv_path = "./data/CXR8/Data_Entry_2017_v2020.csv"
-    class_to_label = {'No Finding': 0, 'Infiltration': 1, 'Effusion': 2, 'Atelectasis': 3, 'Nodule': 4, 'Mass': 5, 'Pneumothorax': 6, 'Consolidation': 7, 'Pleural_Thickening': 8, 'Cardiomegaly': 9, 'Emphysema': 10, 'Edema': 11, 'Fibrosis': 12, 'Pneumonia': 13, 'Hernia': 14}
+    class_to_label = {
+        "No Finding": 0,
+        "Infiltration": 1,
+        "Effusion": 2,
+        "Atelectasis": 3,
+        "Nodule": 4,
+        "Mass": 5,
+        "Pneumothorax": 6,
+        "Consolidation": 7,
+        "Pleural_Thickening": 8,
+        "Cardiomegaly": 9,
+        "Emphysema": 10,
+        "Edema": 11,
+        "Fibrosis": 12,
+        "Pneumonia": 13,
+        "Hernia": 14,
+    }
 
     img_paths = []
     labels = []
@@ -35,8 +52,8 @@ def extract_chest_xray_dataset(binary=False):
         return img_paths, labels
 
     # read the necessary columns only and build a lookup dict to avoid O(n^2) dataframe scans
-    data_entry = pd.read_csv(csv_path, usecols=['Image Index', 'Finding Labels'])
-    mapping = dict(zip(data_entry['Image Index'], data_entry['Finding Labels']))
+    data_entry = pd.read_csv(csv_path, usecols=["Image Index", "Finding Labels"])
+    mapping = dict(zip(data_entry["Image Index"], data_entry["Finding Labels"]))
 
     # faster directory listing with scandir
     with os.scandir(root) as it:
@@ -45,7 +62,7 @@ def extract_chest_xray_dataset(binary=False):
     img_paths = [os.path.join(root, f) for f in files]
 
     # lookup first label via dict (O(1) per file)
-    first_labels = [mapping.get(f, '').split('|')[0] for f in files]
+    first_labels = [mapping.get(f, "").split("|")[0] for f in files]
 
     if binary:
         labels = [0 if class_to_label.get(lbl, -1) == 0 else 1 for lbl in first_labels]
@@ -61,6 +78,7 @@ def extract_chest_xray_dataset(binary=False):
     #     for i in range(len(classes)):
     #         print(f"{classes[i]}: {labels.count(i)} images ({labels.count(i) / len(labels) * 100:.1f}%)")
     return img_paths, labels
+
 
 if __name__ == "__main__":
     img_paths, labels = extract_chest_xray_dataset()
