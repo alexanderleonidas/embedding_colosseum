@@ -134,5 +134,6 @@ def run_classifier(cfg):
         )
         metrics_to_save = {'epoch': epoch, "epoch_loss":epoch_loss, "epoch_acc":epoch_acc, "val_loss":val_loss, "val_acc":val_acc}
         training_logger.save_training_progression(metrics_to_save)
+        training_logger.save_model_weights_and_bias(model.weights, model.bias, epoch)
 
     return val_loss
