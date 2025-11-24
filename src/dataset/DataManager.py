@@ -4,9 +4,9 @@ from matplotlib import pyplot as plt
 from torch.utils.data import DataLoader, random_split
 from torchvision import datasets, transforms
 
-from brain_tumor import extract_brain_tumor_dataset, BRAINTUMOR
-from cxr8 import CXR8, extract_chest_xray_dataset
-from eurosat import EUROSAT, extract_eurosat_dataset
+from src.dataset.brain_tumor import extract_brain_tumor_dataset, BRAINTUMOR
+from src.dataset.cxr8 import CXR8, extract_chest_xray_dataset
+from src.dataset.eurosat import EUROSAT, extract_eurosat_dataset
 
 
 class DataManager:

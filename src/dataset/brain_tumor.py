@@ -1,6 +1,9 @@
 import os
 from PIL import Image
 from torch.utils.data import Dataset
+from torchvision import transforms
+
+# The default size of the pictures in this dataset is 640x640 pixels
 
 
 class BRAINTUMOR(Dataset):
@@ -50,4 +53,8 @@ def extract_brain_tumor_dataset():
 if __name__ == "__main__":
     img_paths, labels = extract_brain_tumor_dataset()
     print(img_paths[:5])
-    print(labels[0])
+    print(labels[:5])
+    img = Image.open(img_paths[100])
+    # img = transforms.ToPILImage()(img)
+    print(img.size)
+    img.show()
