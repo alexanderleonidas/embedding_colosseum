@@ -4,6 +4,14 @@ import pennylane as qml
 import torch
 from pennylane import numpy as np
 
+device = (
+    torch.device("cuda")
+    if torch.cuda.is_available()
+    else torch.device("mps")
+    if torch.backends.mps.is_available()
+    else torch.device("cpu")
+)
+
 
 class NEQR:
     # Novel Enhanced Quantum Representation (NEQR) in PennyLane, inspired by the old one
@@ -93,6 +101,7 @@ class NEQR:
     # to be used inside a VQC (same structure as FRQI.state_preparation)
     def state_preparation(self, X):
         pixels = X.flatten()  # torch tensor in [0,1] or [0,255]
+        pixels = pixels.to(device)
 
         # --- PREPROCESS (Torch version of preprocess()) ---
         # Normalize if needed

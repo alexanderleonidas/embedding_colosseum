@@ -3,6 +3,8 @@ import time
 
 import pennylane as qml
 import torch
+from hydra.core.hydra_config import HydraConfig
+from hydra.utils import instantiate
 from pennylane import numpy as np
 from rich import print
 
@@ -34,29 +36,19 @@ def run_classifier(cfg):
     training_logger = TrainingLogger(run_id=int(time.time()), cfg=cfg)
     np.random.seed(cfg.seed)
     torch.random.manual_seed(cfg.seed)
-    log.info(f"Using {device} to train run ID {training_logger.run_id}.")
+    log.info(f"Using {device}.")
 
-    # data = np.loadtxt("variational_classifier/data/parity_train.txt", dtype=int)
-    # X = np.array(data[:, :-1])
-    # Y = np.array(data[:, -1])
-    # Y = Y * 2 - 1  # shift label from {0, 1} to {-1, 1}
+    # Set up csv for training results
+    csv_fp = HydraConfig.get().runtime.output_dir + "/results.csv"
+    with open(csv_fp, "w") as f:
+        f.write("epoch,batch,train_loss,train_acc,val_loss,val_acc\n")
 
-    # If at least one input feature is on cuda, the computation will be done on cuda
-    # X = torch.tensor(X, dtype=torch.double).to(device=device)
-    # Y = torch.tensor(Y, dtype=torch.double).to(device=device)
-    # log.info(X.shape)
-    # log.info(Y.shape)
-
-    # for x, y in zip(X, Y):
-    #    log.info(f"x = {x}, y = {y}")
-
-    EMBEDDING_TYPE = "FRQI"  # "FRQI", "NEQR",
-    PIXEL_SIZE = 32
-
-    if EMBEDDING_TYPE == "FRQI":
-        embedding = FRQI(num_pixels=PIXEL_SIZE * PIXEL_SIZE)
-    elif EMBEDDING_TYPE == "NEQR":
-        embedding = NEQR(num_pixels=PIXEL_SIZE * PIXEL_SIZE)
+    # "pixel size" Can be changed in /conf/training/base.yaml
+    # embedding in /conf/config.yaml
+    if cfg.embedding == "FRQI":
+        embedding = FRQI(num_pixels=cfg.training.image_width * cfg.training.image_width)
+    elif cfg.embedding == "NEQR":
+        embedding = NEQR(num_pixels=cfg.training.image_width * cfg.training.image_width)
     else:
         raise ValueError("Unknown embedding method")
 
@@ -64,7 +56,7 @@ def run_classifier(cfg):
         batch_size=cfg.training.batch_size,
         seed=cfg.seed,
         dataset="mnist_binary",
-        pixel_size=PIXEL_SIZE,  # pixel size set above
+        pixel_size=cfg.training.image_width,  # pixel size set above
     )
     train_loader, validation_loader, test_loader = dm.get_loaders(
         train_split=0.7,
@@ -77,13 +69,13 @@ def run_classifier(cfg):
     model = VariationalClassifier(
         num_qubits=embedding.num_qubits,
         num_layers=cfg.model.num_layers,
-        state_preparation=embedding.state_preparation,  # embedding set above in run_classifier
         num_classes=2,
-        num_pixels=PIXEL_SIZE * PIXEL_SIZE,
+        num_pixels=cfg.training.image_width * cfg.training.image_width,
+        state_preparation=embedding.state_preparation,  # embedding set above in run_classifier
         # state_preparation=NEQR(num_pixels=2).state_preparation,  # TODO parameterize
     )
-    log.info(f"Weights: {model.weights}")
-    log.info(f"Bias: {model.bias}")
+    log.info(f"Weights Shape: {model.weights.shape}")
+    log.info(f"Bias Shape: {model.bias.shape}")
 
     optimizer = torch.optim.AdamW([model.weights, model.bias], lr=0.1)
 
@@ -93,6 +85,9 @@ def run_classifier(cfg):
         epoch_loss = 0.0
         epoch_acc = 0.0
         for batch, (X, y) in enumerate(train_loader):
+            X = X.to(device)
+            y = y.to(device)
+
             # Computes the loss
             def closure():
                 optimizer.zero_grad()
@@ -104,6 +99,7 @@ def run_classifier(cfg):
             loss = optimizer.step(closure)
             current_cost = loss.item()
             epoch_loss += current_cost
+
             # Compute accuracy
             predictions = torch.stack([torch.sign(model.classify(x)) for x in X])
             acc = accuracy(y, predictions)
@@ -113,6 +109,11 @@ def run_classifier(cfg):
             log.info(
                 f"[{current:>5d}/{total_samples:>5d}] | Cost: {current_cost:0.7f} | Accuracy: {acc:0.7f}"
             )
+
+            # Save training results per batch
+            with open(csv_fp, "a") as f:
+                f.write(f"{epoch},{batch},{current_cost},{acc},,\n")
+
         # Accumulate epoch metrics
         epoch_loss /= total_samples
         epoch_loss /= total_samples
@@ -132,6 +133,9 @@ def run_classifier(cfg):
         log.info(
             f"Validation for epoch {epoch:>3} | Cost: {val_loss:0.7f} | Accuracy: {val_acc:0.7f}"
         )
+        with open(csv_fp, "a") as f:
+            f.write(f"{epoch},,,,{val_loss},{val_acc}\n")
+
         metrics_to_save = {
             "epoch": epoch,
             "epoch_loss": epoch_loss,
@@ -139,7 +143,7 @@ def run_classifier(cfg):
             "val_loss": val_loss,
             "val_acc": val_acc,
         }
-        training_logger.save_training_progression(metrics_to_save)
+        # training_logger.save_training_progression(metrics_to_save)
         training_logger.save_model_weights_and_bias(model.weights, model.bias, epoch)
 
     return val_loss

@@ -56,10 +56,13 @@ class VariationalClassifier:
         self.num_layers = num_layers
         self.num_classes = num_classes
         self.num_pixels = num_pixels
+        self.device = device
 
         torch.random.manual_seed(0)
-        self.weights = torch.rand((num_layers, num_qubits, 3), requires_grad=True)
-        self.bias = torch.tensor(0.0, requires_grad=True)
+        self.weights = torch.rand(
+            (num_layers, num_qubits, 3), requires_grad=True, device=device
+        )
+        self.bias = torch.tensor(0.0, requires_grad=True, device=device)
         self.loss_fn = torch.nn.MSELoss()
         self.state_preparation = state_preparation
 
@@ -77,7 +80,7 @@ class VariationalClassifier:
 
     def cost(self, X, Y):
         predictions = torch.stack([self.classify(x) for x in X])
-        return self.loss_fn(predictions, Y)
+        return self.loss_fn(predictions.to(device), Y.to(device))
 
     def save_svg(self, path: str = "circuit.svg", decimals: int = 2):
         mpl.rcParams["svg.fonttype"] = "none"  # To keep text as text in SVG

@@ -1,0 +1,9 @@
+seed: 0
+embedding: NEQR
+model:
+  _target_: src.model.VariationalClassifier.VariationalClassifier
+  num_layers: 3
+training:
+  epochs: 3
+  batch_size: 50
+  image_width: 4
