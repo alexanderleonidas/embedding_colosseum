@@ -1,4 +1,5 @@
 import logging
+import time
 
 import pennylane as qml
 import torch
@@ -9,6 +10,7 @@ from src.dataset.DataManager import DataManager
 from src.embeddings.FRQI_PennyLane import FRQI
 from src.embeddings.NEQR_PennyLane import NEQR
 from src.model.VariationalClassifier import VariationalClassifier
+from src.utils.save_training_progress import TrainingLogger
 
 log = logging.getLogger(__name__)
 device = (
@@ -29,9 +31,10 @@ def accuracy(labels, predictions):
 
 
 def run_classifier(cfg):
+    training_logger = TrainingLogger(run_id=int(time.time()), cfg=cfg)
     np.random.seed(cfg.seed)
     torch.random.manual_seed(cfg.seed)
-    log.info(f"Using {device} to train.")
+    log.info(f"Using {device} to train run ID {training_logger.run_id}.")
 
     # data = np.loadtxt("variational_classifier/data/parity_train.txt", dtype=int)
     # X = np.array(data[:, :-1])
@@ -87,6 +90,8 @@ def run_classifier(cfg):
     # Training Loop
     total_samples = len(train_loader.dataset)
     for epoch in range(cfg.training.epochs):
+        epoch_loss = 0.0
+        epoch_acc = 0.0
         for batch, (X, y) in enumerate(train_loader):
             # Computes the loss
             def closure():
@@ -98,19 +103,21 @@ def run_classifier(cfg):
 
             loss = optimizer.step(closure)
             current_cost = loss.item()
-
+            epoch_loss += current_cost
             # Compute accuracy
             predictions = torch.stack([torch.sign(model.classify(x)) for x in X])
             acc = accuracy(y, predictions)
-
+            epoch_acc += acc
             current = batch * cfg.training.batch_size
 
             log.info(
                 f"[{current:>5d}/{total_samples:>5d}] | Cost: {current_cost:0.7f} | Accuracy: {acc:0.7f}"
             )
-
+        # Accumulate epoch metrics
+        epoch_loss /= total_samples
+        epoch_loss /= total_samples
         # Validation loop
-        val_acc, val_loss = 0, 0
+        val_acc, val_loss = 0.0, 0.0
         for X, y in validation_loader:
             X = X.to(device).double()
             y = y.to(device).double()
@@ -125,4 +132,14 @@ def run_classifier(cfg):
         log.info(
             f"Validation for epoch {epoch:>3} | Cost: {val_loss:0.7f} | Accuracy: {val_acc:0.7f}"
         )
+        metrics_to_save = {
+            "epoch": epoch,
+            "epoch_loss": epoch_loss,
+            "epoch_acc": epoch_acc,
+            "val_loss": val_loss,
+            "val_acc": val_acc,
+        }
+        training_logger.save_training_progression(metrics_to_save)
+        training_logger.save_model_weights_and_bias(model.weights, model.bias, epoch)
+
     return val_loss

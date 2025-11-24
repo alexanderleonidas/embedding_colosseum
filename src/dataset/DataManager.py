@@ -4,7 +4,9 @@ from matplotlib import pyplot as plt
 from torch.utils.data import DataLoader, random_split
 from torchvision import datasets, transforms
 
-from .brain_tumor import extract_brain_tumor_dataset, BRAINTUMOR
+from src.dataset.brain_tumor import extract_brain_tumor_dataset, BRAINTUMOR
+from src.dataset.cxr8 import CXR8, extract_chest_xray_dataset
+from src.dataset.eurosat import EUROSAT, extract_eurosat_dataset
 
 
 class DataManager:
@@ -64,17 +66,22 @@ class DataManager:
             all_data = torch.utils.data.ConcatDataset([full_train, test_ds])
 
         elif dataset == "cxr8":
-            raise NotImplemented("Dataset not supported yet.")
-
+            img_paths, labels = extract_chest_xray_dataset()
+            all_data = CXR8(img_paths, labels, transform=self.transform)
+        elif dataset == "cxr8_binary":
+            img_paths, labels = extract_chest_xray_dataset(binary=True)
+            all_data = CXR8(img_paths, labels, transform=self.transform)
         elif dataset == "brain_tumor":
             img_paths, labels = extract_brain_tumor_dataset()
             all_data = BRAINTUMOR(img_paths, labels, transform=self.transform)
-
-        elif dataset == "eurosat":
-            raise NotImplemented("Dataset not supported yet.")
-
+        elif dataset == "eurosat_ms":
+            img_paths, labels = extract_eurosat_dataset(rgb=False)
+            all_data = EUROSAT(img_paths, labels, transform=self.transform)
+        elif dataset == "eurosat_rgb":
+            img_paths, labels = extract_eurosat_dataset(rgb=True)
+            all_data = EUROSAT(img_paths, labels, transform=self.transform)
         else:
-            raise ValueError("Unsupported dataset. Choose 'mnist', 'fashion', 'cifar10', 'stl10', 'cxr8', 'brain_tumor_{ct, mri}' or 'eurosat'.")
+            raise ValueError("Unsupported dataset. Choose 'mnist{_binary}', 'fashion', 'cifar10', 'stl10', 'cxr8{_binary}', 'brain_tumor' or 'eurosat_{rgb,ms}'.")
 
 
         return all_data    
@@ -84,11 +91,8 @@ class DataManager:
         Prepare DataLoaders for training and testing datasets.
 
         :param train_split: Proportion of training data.
-        :type train_split: float
         :param val_split: Proportion of validation data.
-        :type val_split: float
         :param test_split: Proportion of test data.
-        :type test_split: float
         :return: Tuple of (train_loader, val_loader, test_loader)
         """
         if val_split <= 0 or val_split >= 1 or train_split <= 0 or train_split >= 1 or test_split <= 0 or test_split >= 1:
@@ -110,10 +114,11 @@ class DataManager:
 
 # Example usage
 if __name__ == "__main__":
-    Dataloader = DataManager(batch_size=100, seed=42, dataset="brain_tumor", pixel_size=512)
+    Dataloader = DataManager(batch_size=100, seed=42, dataset="eurosat_rgb", pixel_size=64)
     train, val, test = Dataloader.get_loaders(0.8,0.1,0.1)
     print(f"Train loader length: {len(train)}, Val loader length: {len(val)}, Test loader length: {len(test)}")
     img, label = train.dataset[0]
     print(img.shape)
+    print(label)
     img = transforms.ToPILImage()(img)
     img.show()
