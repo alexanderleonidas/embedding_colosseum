@@ -42,9 +42,9 @@ def extract_brain_tumor_dataset():
                     img_paths.append(os.path.join(mri_class_path, mri_img_name))
                     labels.append(class_to_label[class_name])
 
-    print(f"\nTotal Images: {len(img_paths)}")
-    print(f"Tumor (yes): {labels.count(1)} images ({labels.count(1) / len(labels) * 100:.1f}%)")
-    print(f"No Tumor (no): {labels.count(0)} images ({labels.count(0) / len(labels) * 100:.1f}%)")
+    # print(f"\nTotal Images: {len(img_paths)}")
+    # print(f"Tumor (yes): {labels.count(1)} images ({labels.count(1) / len(labels) * 100:.1f}%)")
+    # print(f"No Tumor (no): {labels.count(0)} images ({labels.count(0) / len(labels) * 100:.1f}%)")
     return img_paths, labels
 
 if __name__ == "__main__":
