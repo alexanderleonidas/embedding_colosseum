@@ -1,3 +1,5 @@
+import os
+
 import torch
 from matplotlib import pyplot as plt
 from torch.utils.data import DataLoader, random_split
@@ -13,30 +15,41 @@ class DataManager:
     Data Manager for loading a specified dataset.
     """
 
-    def __init__(self, batch_size: int, seed: int, pixel_size: int, dataset="mnist"):
+    def __init__(self, batch_size: int, seed: int, pixel_size: int, dataset="mnist", transform="normalise"):
         self.batch_size = batch_size
         self.generator = torch.Generator().manual_seed(seed)
-        self.transform = transforms.Compose(
-            [transforms.ToTensor(), transforms.Resize((pixel_size, pixel_size))]
-        )
+        if transform == "greyscale":
+            transform = transforms.Compose([transforms.Grayscale(), transforms.Resize((pixel_size, pixel_size))])
+        elif transform == "normalise":
+            transform = transforms.Compose([transforms.ToTensor(), transforms.Resize((pixel_size, pixel_size))])
+        else:
+            raise ValueError("Unsupported transform. Choose 'normalise' or 'greyscale'.")
+        self.transform = transform
+        self.root = self._get_root()
         self._data = self._get_dataset(dataset)
+
+    def _get_root(self):
+        root = os.getcwd()
+        root = root.split("src/")[0]
+        root = os.path.join(root, "src/dataset/data")
+        return root
 
     def _get_dataset(self, dataset):
         if dataset == "mnist":
             full_train = datasets.MNIST(
-                root="./data", train=True, download=True, transform=self.transform
+                root=self.root, train=True, download=True, transform=self.transform
             )
             test_ds = datasets.MNIST(
-                root="./data", train=False, download=True, transform=self.transform
+                root=self.root, train=False, download=True, transform=self.transform
             )
             all_data = torch.utils.data.ConcatDataset([full_train, test_ds])
 
         elif dataset == "mnist_binary":
             full_train = datasets.MNIST(
-                root="./data", train=True, download=True, transform=self.transform
+                root=self.root, train=True, download=True, transform=self.transform
             )
             test_ds = datasets.MNIST(
-                root="./data", train=False, download=True, transform=self.transform
+                root=self.root, train=False, download=True, transform=self.transform
             )
 
             # Select digits for binary classification
@@ -62,28 +75,28 @@ class DataManager:
 
         elif dataset == "fashion":
             full_train = datasets.FashionMNIST(
-                root="./data", train=True, download=True, transform=self.transform
+                root=self.root, train=True, download=True, transform=self.transform
             )
             test_ds = datasets.FashionMNIST(
-                root="./data", train=False, download=True, transform=self.transform
+                root=self.root, train=False, download=True, transform=self.transform
             )
             all_data = torch.utils.data.ConcatDataset([full_train, test_ds])
 
         elif dataset == "cifar10":
             full_train = datasets.CIFAR10(
-                root="./data", train=True, download=True, transform=self.transform
+                root=self.root, train=True, download=True, transform=self.transform
             )
             test_ds = datasets.CIFAR10(
-                root="./data", train=False, download=True, transform=self.transform
+                root=self.root, train=False, download=True, transform=self.transform
             )
             all_data = torch.utils.data.ConcatDataset([full_train, test_ds])
 
         elif dataset == "stl10":
             full_train = datasets.STL10(
-                root="./data", split="train", download=True, transform=self.transform
+                root=self.root, split="train", download=True, transform=self.transform
             )
             test_ds = datasets.STL10(
-                root="./data", split="test", download=True, transform=self.transform
+                root=self.root, split="test", download=True, transform=self.transform
             )
             all_data = torch.utils.data.ConcatDataset([full_train, test_ds])
 
@@ -145,15 +158,16 @@ class DataManager:
 
 # Example usage
 if __name__ == "__main__":
-    Dataloader = DataManager(
+    dm = DataManager(
         batch_size=100, seed=42, dataset="eurosat_rgb", pixel_size=64
     )
-    train, val, test = Dataloader.get_loaders(0.8, 0.1, 0.1)
-    print(
-        f"Train loader length: {len(train)}, Val loader length: {len(val)}, Test loader length: {len(test)}"
-    )
-    img, label = train.dataset[0]
-    print(img.shape)
-    print(label)
-    img = transforms.ToPILImage()(img)
-    img.show()
+    print(dm.root)
+    # train, val, test = dm.get_loaders(0.8, 0.1, 0.1)
+    # print(
+    #     f"Train loader length: {len(train)}, Val loader length: {len(val)}, Test loader length: {len(test)}"
+    # )
+    # img, label = train.dataset[0]
+    # print(img.shape)
+    # print(label)
+    # img = transforms.ToPILImage()(img)
+    # img.show()

@@ -69,11 +69,11 @@ def extract_eurosat_dataset(rgb=True):
                     img_paths.append(os.path.join(class_path, img_name))
                     labels.append(class_to_label[class_name])
 
-    print(f"\nTotal Images: {len(img_paths)}")
-    for i in range(len(classes)):
-        print(
-            f"{classes[i]}: {labels.count(i)} images ({labels.count(i) / len(labels) * 100:.1f}%)"
-        )
+    # print(f"\nTotal Images: {len(img_paths)}")
+    # for i in range(len(classes)):
+    #     print(
+    #         f"{classes[i]}: {labels.count(i)} images ({labels.count(i) / len(labels) * 100:.1f}%)"
+    #     )
 
     return img_paths, labels
 
