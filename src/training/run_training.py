@@ -92,7 +92,7 @@ def run_classifier(cfg):
             def closure():
                 optimizer.zero_grad()
                 # Ensure tensors are the expected dtype for autograd
-                loss = model.cost(X.to(device).double(), y.to(device).double())
+                loss = model.cost(X.to(device).float(), y.to(device).float())
                 loss.backward()
                 return loss
 

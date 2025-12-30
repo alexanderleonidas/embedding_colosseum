@@ -8,7 +8,10 @@ from rich import print
 
 log = logging.getLogger(__name__)
 
-q_device = qml.device("default.qubit")
+# If linux based GPU setup is available, install lightning.gpu
+#  (pip install custatevec_cu12 pennylane-lightning-gpu)
+# Otherwise, use the accelerated CPU version: lightning.qubit
+q_device = qml.device("lightning.qubit")
 device = (
     torch.device("cuda")
     if torch.cuda.is_available()
@@ -30,9 +33,12 @@ def _state_preparation(x):
     qml.BasisState(x, wires=[0, 1, 2, 3])
 
 
-# Add torch and backprop to be able to run it on a GPU using cuda
-# This also enables us to use the standard pytorch optimizers, and all the other stuff
-@qml.qnode(q_device, interface="torch", diff_method="backprop")
+# Use Torch as interface for PennyLane
+#   -> Gives compatibility with Torch optimizers and autograd (under circumstances)
+#
+# Note: If diff_method="adjoint", is not done by pytorch but by PennyLane Accelerators
+#   -> Requires compatible device (e.g. lightning.gpu or lightning.qubit)
+@qml.qnode(q_device, interface="torch", diff_method="adjoint")
 def _circuit(weights, x, num_qubits, embedding, num_classes: int):
     embedding(x)
 
