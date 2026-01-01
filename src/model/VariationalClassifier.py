@@ -3,8 +3,6 @@ import logging
 import matplotlib as mpl
 import pennylane as qml
 import torch
-from pennylane import numpy as np
-from rich import print
 
 log = logging.getLogger(__name__)
 
@@ -17,35 +15,33 @@ device = (
 )
 
 
-def _state_preparation(x):
-    qml.BasisState(x, wires=[0, 1, 2, 3])
-
-
 class VariationalClassifier:
     def __init__(
         self,
+        state_preparation,
         num_qubits: int,
         num_layers: int,
         num_classes: int,
         num_pixels: int = 32,
-        state_preparation=_state_preparation,
     ):
+        assert state_preparation is not None, (
+            "State preparation function must be provided"
+        )
+        self.state_preparation = state_preparation
         self.num_classes = num_classes
         self.num_layers = num_layers
         self.num_pixels = num_pixels
         self.device = device
 
-        # Calculate correct number of qubits
-        #     based on embedding qubits and number of classes
+        # Calculate correct num qubits based on embedding qubits and num classes
         self.num_qubits = max(self.num_classes, num_qubits)
 
+        # Initialize weights and bias
         torch.random.manual_seed(0)
         self.weights = torch.rand(
             (num_layers, self.num_qubits, 3), requires_grad=True, device=device
         )
         self.bias = torch.tensor(0.0, requires_grad=True, device=device)
-        self.loss_fn = torch.nn.CrossEntropyLoss()
-        self.state_preparation = state_preparation
 
         # If linux based GPU setup is available, install lightning.gpu
         #  (pip install custatevec_cu12 pennylane-lightning-gpu)
@@ -61,27 +57,22 @@ class VariationalClassifier:
         def circuit(weights, x):
             self.state_preparation(x)
 
-            # for layer_weights in weights:
-            #     for wire in range(num_qubits):
-            #         qml.Rot(*layer_weights[wire], wires=wire)
-
-            #         for wires in [(i, (i + 1) % num_qubits) for i in range(num_qubits)]:
-            #             qml.CNOT(wires)
+            # Create variational layers based on weights shape
             qml.StronglyEntanglingLayers(weights=weights, wires=range(self.num_qubits))
 
-            return tuple(qml.expval(qml.PauliZ(i)) for i in range(num_classes))
-            # return qml.expval(qml.PauliZ(wires=range(self.num_classes)))
-            # return qml.probs(wires=range(self.num_qubits))
+            return tuple(qml.expval(qml.PauliZ(i)) for i in range(self.num_classes))
 
         self.circuit = circuit
         pass
 
-    def classify(self, x):
-        return torch.stack(self.circuit(weights=self.weights, x=x)) + self.bias
-
-    def cost(self, X, Y):
-        predictions = torch.stack([self.classify(x) for x in X])
-        return self.loss_fn(predictions.to(device), Y.to(device).long())
+    def classify(self, X):
+        """Classifies a batch of inputs X"""
+        return torch.stack(
+            [
+                torch.stack(self.circuit(weights=self.weights, x=x)) + self.bias
+                for x in X
+            ]
+        )
 
     def save_svg(self, path: str = "circuit.svg", decimals: int = 2, level="top"):
         """Prints the circuit to a svg using qml.draw_mpl

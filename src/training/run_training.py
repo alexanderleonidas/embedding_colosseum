@@ -25,7 +25,7 @@ device = (
 
 
 @torch.no_grad()  # Ensure no gradients are computed during accuracy calculation
-def accuracy(labels, logits):
+def accuracy(logits, labels):
     predictions = torch.argmax(logits, dim=1)
     num_correct = (labels == predictions).sum().item()
     return num_correct / len(labels)
@@ -62,21 +62,22 @@ def run_classifier(cfg):
         val_split=0.2,
         test_split=0.1,
     )
-    # TODO Adjust model for number of output classes:
-    # UserWarning: Using a target size (torch.Size([10])) that is different to the input size (torch.Size([1])). This will likely lead to incorrect results due to broadcasting. Please ensure they have the same size.
-    #   return F.mse_loss(input, target, reduction=self.reduction)
+
     model = VariationalClassifier(
         num_qubits=embedding.num_qubits,
         num_layers=cfg.model.num_layers,
         num_classes=cfg.dataset.num_classes,
         num_pixels=cfg.training.image_width * cfg.training.image_width,
-        state_preparation=embedding.state_preparation,  # embedding set above in run_classifier
-        # state_preparation=NEQR(num_pixels=2).state_preparation,  # TODO parameterize
+        state_preparation=embedding.state_preparation,
     )
     log.info(f"Weights Shape: {model.weights.shape}")
     log.info(f"Bias Shape: {model.bias.shape}")
 
-    optimizer = torch.optim.AdamW([model.weights, model.bias], lr=0.1)
+    optimizer = torch.optim.AdamW(
+        params=[model.weights, model.bias],
+        lr=cfg.training.lr,
+    )
+    loss_fn = torch.nn.CrossEntropyLoss()
 
     # Training Loop
     total_samples = len(train_loader.dataset)
@@ -87,21 +88,18 @@ def run_classifier(cfg):
             X = X.to(device)
             y = y.to(device)
 
-            # Computes the loss
-            def closure():
-                optimizer.zero_grad()
-                # Ensure tensors are the expected dtype for autograd
-                loss = model.cost(X.to(device).float(), y.to(device).float())
-                loss.backward()
-                return loss
+            optimizer.zero_grad()
+            pred = model.classify(X)
+            loss = loss_fn(pred, y.long())
 
-            loss = optimizer.step(closure)
+            loss.backward()
+            optimizer.step()
+
             current_cost = loss.item()
             epoch_loss += current_cost
 
             # Compute accuracy
-            predictions = torch.stack([torch.sign(model.classify(x)) for x in X])
-            acc = accuracy(y, predictions)
+            acc = accuracy(logits=pred, labels=y)
             epoch_acc += acc
             current = batch * cfg.training.batch_size
 
@@ -118,15 +116,15 @@ def run_classifier(cfg):
         epoch_acc /= total_samples
 
         # Validation loop
-        val_acc, val_loss = 0.0, 0.0
-        for X, y in validation_loader:
-            X = X.to(device).double()
-            y = y.to(device).double()
+        with torch.no_grad():
+            val_acc, val_loss = 0.0, 0.0
+            for X, y in validation_loader:
+                X = X.to(device).double()
+                y = y.to(device).double()
 
-            val_loss += model.cost(X, y).item()
-
-            predictions = torch.stack([torch.sign(model.classify(x)) for x in X])
-            val_acc = accuracy(y, predictions)
+                pred = model.classify(X)
+                val_loss += loss_fn(pred, y.long()).item()
+                val_acc += accuracy(logits=pred, labels=y)
 
         val_loss /= len(validation_loader)
         val_acc /= len(validation_loader)
@@ -136,14 +134,5 @@ def run_classifier(cfg):
         with open(csv_fp, "a") as f:
             f.write(f"{epoch},,,,{val_loss},{val_acc}\n")
 
-        metrics_to_save = {
-            "epoch": epoch,
-            "epoch_loss": epoch_loss,
-            "epoch_acc": epoch_acc,
-            "val_loss": val_loss,
-            "val_acc": val_acc,
-        }
-        # training_logger.save_training_progression(metrics_to_save)
         training_logger.save_model_weights_and_bias(model.weights, model.bias, epoch)
-
     return val_loss
