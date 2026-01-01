@@ -9,8 +9,12 @@ defaults:
 
 # Random seed
 seed: 0
-# embedding: FRQI
-embedding: NEQR
+embedding: FRQI
+# embedding: NEQR
+
+dataset:
+  name: MNIST
+  num_classes: 10
 
 
 # Extra configuration for logging

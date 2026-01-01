@@ -24,12 +24,11 @@ device = (
 )
 
 
-def accuracy(labels, predictions):
-    acc = 0.0
-    for label, pred in zip(labels, predictions):
-        acc += torch.sum(torch.abs(label - pred) < 1e-5)
-    acc = acc / len(labels)
-    return acc.item()
+@torch.no_grad()  # Ensure no gradients are computed during accuracy calculation
+def accuracy(labels, logits):
+    predictions = torch.argmax(logits, dim=1)
+    num_correct = (labels == predictions).sum().item()
+    return num_correct / len(labels)
 
 
 def run_classifier(cfg):
@@ -55,7 +54,7 @@ def run_classifier(cfg):
     dm = DataManager(
         batch_size=cfg.training.batch_size,
         seed=cfg.seed,
-        dataset="mnist_binary",
+        dataset="mnist",
         pixel_size=cfg.training.image_width,  # pixel size set above
     )
     train_loader, validation_loader, test_loader = dm.get_loaders(
@@ -69,7 +68,7 @@ def run_classifier(cfg):
     model = VariationalClassifier(
         num_qubits=embedding.num_qubits,
         num_layers=cfg.model.num_layers,
-        num_classes=2,
+        num_classes=cfg.dataset.num_classes,
         num_pixels=cfg.training.image_width * cfg.training.image_width,
         state_preparation=embedding.state_preparation,  # embedding set above in run_classifier
         # state_preparation=NEQR(num_pixels=2).state_preparation,  # TODO parameterize
@@ -116,7 +115,8 @@ def run_classifier(cfg):
 
         # Accumulate epoch metrics
         epoch_loss /= total_samples
-        epoch_loss /= total_samples
+        epoch_acc /= total_samples
+
         # Validation loop
         val_acc, val_loss = 0.0, 0.0
         for X, y in validation_loader:
@@ -125,8 +125,8 @@ def run_classifier(cfg):
 
             val_loss += model.cost(X, y).item()
 
-            preds = torch.stack([torch.sign(model.classify(x)) for x in X])
-            val_acc += accuracy(y, preds)
+            predictions = torch.stack([torch.sign(model.classify(x)) for x in X])
+            val_acc = accuracy(y, predictions)
 
         val_loss /= len(validation_loader)
         val_acc /= len(validation_loader)
