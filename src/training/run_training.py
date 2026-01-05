@@ -94,6 +94,7 @@ def run_classifier(cfg):
 
             loss.backward()
             optimizer.step()
+            torch.cuda.empty_cache()
 
             current_cost = loss.item()
             epoch_loss += current_cost

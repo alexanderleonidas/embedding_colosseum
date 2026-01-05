@@ -81,7 +81,16 @@ class FRQI:
     # This state_preparation was copied from the circuit above
     # to be used in the VQC
     def state_preparation(self, X: torch.Tensor):
-        pixels = X.flatten()
+        pixels = X
+
+        # Allow both single-sample (num_pixels,) and batched (B, num_pixels) inputs
+        if pixels.dim() == 1:
+            pixels = pixels.flatten()
+        else:
+            # keep batch dim, flatten remaining dims
+            batch_size = pixels.shape[0]
+            pixels = pixels.view(batch_size, -1)
+
         pixels = pixels.to(device)
 
         # the DataManager should handle normalization in resize_images, but just in case it is not always so
@@ -94,6 +103,8 @@ class FRQI:
         zero = torch.tensor(0.0, dtype=pixels.dtype, device=device)
         pi2 = torch.tensor(math.pi / 2, dtype=pixels.dtype, device=device)
         angles = torch.lerp(zero, pi2, pixels)
+
+        batch_mode = angles.dim() == 2  # True if shape (B, num_pixels)
 
         num_pos_qubits = self.num_qubits - 1
         color_wire = 0  # wire index of the control qubit in the circuit
@@ -123,6 +134,12 @@ class FRQI:
             ):  # flipping the qubits which bit string == 0
                 if bit == "0":
                     qml.PauliX(wires=wire)
+
+            # select theta for single or batched inputs
+            if batch_mode:
+                theta = angles[:, i]  # shape (B,)
+            else:
+                theta = angles[i]  # scalar
 
             # the state is in all 1s when the controlled RY is applied
             qml.ctrl(qml.RY, control=pos_wires)(2 * theta, wires=color_wire)

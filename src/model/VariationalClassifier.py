@@ -39,31 +39,31 @@ class VariationalClassifier:
         # Initialize weights and bias
         torch.random.manual_seed(0)
         self.weights = torch.rand(
-            (num_layers, self.num_qubits, 3), requires_grad=True, device=device
+            (num_layers, self.num_qubits, 3),
+            requires_grad=True,
+            device=device,
+            dtype=torch.float32,
         )
-        self.bias = torch.tensor(0.0, requires_grad=True, device=device)
+        # self.bias = torch.tensor(0.0, requires_grad=True, device=device)
+        self.bias = torch.zeros(
+            self.num_classes,
+            requires_grad=True,
+            device=device,
+            dtype=torch.float32,
+        )
 
         # If linux based GPU setup is available, install lightning.gpu
         #  (pip install custatevec_cu12 pennylane-lightning-gpu)
         # Otherwise, use the accelerated CPU version: lightning.qubit
         # Use lightning.gpu if CUDA is available, otherwise fall back to lightning.qubit
-        try:
-            if torch.cuda.is_available():
-                q_device = qml.device("lightning.gpu", wires=self.num_qubits)
-                log.info("Using lightning.gpu for quantum simulations")
-            else:
-                q_device = qml.device("lightning.qubit", wires=self.num_qubits)
-                log.info("Using lightning.qubit for quantum simulations")
-        except:
-            q_device = qml.device("lightning.qubit", wires=self.num_qubits)
-            log.info("Falling back to lightning.qubit")
 
-        # Use Torch as interface for PennyLane
+        q_device = qml.device("default.qubit", wires=self.num_qubits)
+
         #   -> Gives compatibility with Torch optimizers and autograd (under circumstances)
         #
         # Note: If diff_method="adjoint", is not done by pytorch but by PennyLane Accelerators
         #   -> Requires compatible device (e.g. lightning.gpu or lightning.qubit)
-        @qml.qnode(q_device, interface="torch", diff_method="adjoint")
+        @qml.qnode(q_device, interface="torch", diff_method="best")
         def circuit(weights, x):
             self.state_preparation(x)
 
@@ -77,13 +77,7 @@ class VariationalClassifier:
 
     def classify(self, X):
         """Classifies a batch of inputs X"""
-        batch_size = X.shape[0]
-        results = []
-
-        for x in X:
-            results.append(self.circuit(weights=self.weights, x=x))
-
-        return torch.stack([torch.stack(r) for r in results]) + self.bias
+        return torch.stack(self.circuit(self.weights, X), dim=1) + self.bias
 
     def save_svg(self, path: str = "circuit.svg", decimals: int = 2, level="top"):
         """Prints the circuit to a svg using qml.draw_mpl

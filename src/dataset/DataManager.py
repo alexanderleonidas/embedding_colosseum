@@ -167,19 +167,19 @@ class DataManager:
             train_ds,
             batch_size=self.batch_size,
             shuffle=True,
-            pin_memory=True,
+            # pin_memory=True,
         )
         val_loader = DataLoader(
             val_ds,
             batch_size=self.batch_size,
             shuffle=False,
-            pin_memory=True,
+            # pin_memory=True,
         )
         test_loader = DataLoader(
             test_ds,
             batch_size=self.batch_size,
             shuffle=False,
-            pin_memory=True,
+            # pin_memory=True,
         )
         return train_loader, val_loader, test_loader
 
