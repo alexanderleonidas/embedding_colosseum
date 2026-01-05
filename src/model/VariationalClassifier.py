@@ -46,7 +46,17 @@ class VariationalClassifier:
         # If linux based GPU setup is available, install lightning.gpu
         #  (pip install custatevec_cu12 pennylane-lightning-gpu)
         # Otherwise, use the accelerated CPU version: lightning.qubit
-        q_device = qml.device("lightning.gpu")
+        # Use lightning.gpu if CUDA is available, otherwise fall back to lightning.qubit
+        try:
+            if torch.cuda.is_available():
+                q_device = qml.device("lightning.gpu", wires=self.num_qubits)
+                log.info("Using lightning.gpu for quantum simulations")
+            else:
+                q_device = qml.device("lightning.qubit", wires=self.num_qubits)
+                log.info("Using lightning.qubit for quantum simulations")
+        except:
+            q_device = qml.device("lightning.qubit", wires=self.num_qubits)
+            log.info("Falling back to lightning.qubit")
 
         # Use Torch as interface for PennyLane
         #   -> Gives compatibility with Torch optimizers and autograd (under circumstances)
@@ -67,12 +77,13 @@ class VariationalClassifier:
 
     def classify(self, X):
         """Classifies a batch of inputs X"""
-        return torch.stack(
-            [
-                torch.stack(self.circuit(weights=self.weights, x=x)) + self.bias
-                for x in X
-            ]
-        )
+        batch_size = X.shape[0]
+        results = []
+
+        for x in X:
+            results.append(self.circuit(weights=self.weights, x=x))
+
+        return torch.stack([torch.stack(r) for r in results]) + self.bias
 
     def save_svg(self, path: str = "circuit.svg", decimals: int = 2, level="top"):
         """Prints the circuit to a svg using qml.draw_mpl

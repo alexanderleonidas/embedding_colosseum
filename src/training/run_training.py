@@ -119,8 +119,8 @@ def run_classifier(cfg):
         with torch.no_grad():
             val_acc, val_loss = 0.0, 0.0
             for X, y in validation_loader:
-                X = X.to(device).double()
-                y = y.to(device).double()
+                X = X.to(device)
+                y = y.to(device)
 
                 pred = model.classify(X)
                 val_loss += loss_fn(pred, y.long()).item()

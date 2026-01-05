@@ -15,15 +15,28 @@ class DataManager:
     Data Manager for loading a specified dataset.
     """
 
-    def __init__(self, batch_size: int, seed: int, pixel_size: int, dataset="mnist", transform="normalise"):
+    def __init__(
+        self,
+        batch_size: int,
+        seed: int,
+        pixel_size: int,
+        dataset="mnist",
+        transform="normalise",
+    ):
         self.batch_size = batch_size
         self.generator = torch.Generator().manual_seed(seed)
         if transform == "greyscale":
-            transform = transforms.Compose([transforms.Grayscale(), transforms.Resize((pixel_size, pixel_size))])
+            transform = transforms.Compose(
+                [transforms.Grayscale(), transforms.Resize((pixel_size, pixel_size))]
+            )
         elif transform == "normalise":
-            transform = transforms.Compose([transforms.ToTensor(), transforms.Resize((pixel_size, pixel_size))])
+            transform = transforms.Compose(
+                [transforms.ToTensor(), transforms.Resize((pixel_size, pixel_size))]
+            )
         else:
-            raise ValueError("Unsupported transform. Choose 'normalise' or 'greyscale'.")
+            raise ValueError(
+                "Unsupported transform. Choose 'normalise' or 'greyscale'."
+            )
         self.transform = transform
         self.root = self._get_root()
         self._data = self._get_dataset(dataset)
@@ -150,17 +163,30 @@ class DataManager:
             self._data, [train_size, val_size, test_size]
         )
 
-        train_loader = DataLoader(train_ds, batch_size=self.batch_size, shuffle=True)
-        val_loader = DataLoader(val_ds, batch_size=self.batch_size, shuffle=False)
-        test_loader = DataLoader(test_ds, batch_size=self.batch_size, shuffle=False)
+        train_loader = DataLoader(
+            train_ds,
+            batch_size=self.batch_size,
+            shuffle=True,
+            pin_memory=True,
+        )
+        val_loader = DataLoader(
+            val_ds,
+            batch_size=self.batch_size,
+            shuffle=False,
+            pin_memory=True,
+        )
+        test_loader = DataLoader(
+            test_ds,
+            batch_size=self.batch_size,
+            shuffle=False,
+            pin_memory=True,
+        )
         return train_loader, val_loader, test_loader
 
 
 # Example usage
 if __name__ == "__main__":
-    dm = DataManager(
-        batch_size=100, seed=42, dataset="eurosat_rgb", pixel_size=64
-    )
+    dm = DataManager(batch_size=100, seed=42, dataset="eurosat_rgb", pixel_size=64)
     print(dm.root)
     # train, val, test = dm.get_loaders(0.8, 0.1, 0.1)
     # print(
