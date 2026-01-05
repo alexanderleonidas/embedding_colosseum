@@ -46,7 +46,7 @@ class VariationalClassifier:
         # If linux based GPU setup is available, install lightning.gpu
         #  (pip install custatevec_cu12 pennylane-lightning-gpu)
         # Otherwise, use the accelerated CPU version: lightning.qubit
-        q_device = qml.device("lightning.qubit")
+        q_device = qml.device("lightning.gpu")
 
         # Use Torch as interface for PennyLane
         #   -> Gives compatibility with Torch optimizers and autograd (under circumstances)
