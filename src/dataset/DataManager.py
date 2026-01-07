@@ -145,11 +145,11 @@ class DataManager:
         :return: Tuple of (train_loader, val_loader, test_loader)
         """
         if (
-            val_split <= 0
+            val_split < 0
             or val_split >= 1
-            or train_split <= 0
-            or train_split >= 1
-            or test_split <= 0
+            or train_split < 0
+            or train_split > 1
+            or test_split < 0
             or test_split >= 1
         ):
             raise ValueError("Invalid split values. Values must be between 0 and 1.")

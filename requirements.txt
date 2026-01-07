@@ -1,6 +1,8 @@
 ipykernel
 matplotlib
+numpy
 torchvision
+torch
 keras
 pandas
 h5py
