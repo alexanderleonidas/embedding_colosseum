@@ -24,7 +24,7 @@ class CXR8(Dataset):
         return img, label
 
 
-def extract_chest_xray_dataset(binary=False):
+def extract_chest_xray_dataset():
     root = "./data/CXR8/images"
     csv_path = "./data/CXR8/Data_Entry_2017_v2020.csv"
     class_to_label = {
@@ -64,10 +64,8 @@ def extract_chest_xray_dataset(binary=False):
     # lookup first label via dict (O(1) per file)
     first_labels = [mapping.get(f, "").split("|")[0] for f in files]
 
-    if binary:
-        labels = [0 if class_to_label.get(lbl, -1) == 0 else 1 for lbl in first_labels]
-    else:
-        labels = [class_to_label.get(lbl, -1) for lbl in first_labels]
+
+    labels = [class_to_label.get(lbl, -1) for lbl in first_labels]
 
     # print(f"\nTotal Images: {len(img_paths)}")
     # if binary:

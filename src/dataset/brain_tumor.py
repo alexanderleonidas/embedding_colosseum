@@ -1,8 +1,6 @@
 import os
-
 from PIL import Image
 from torch.utils.data import Dataset
-from torchvision import transforms
 
 # The default size of the pictures in this dataset is 640x640 pixels
 
@@ -32,7 +30,7 @@ def extract_brain_tumor_dataset():
 
     img_paths = []
     labels = []
-    class_to_label = {"Healthy": 0, "Tumor": 1}
+    class_to_label = {"Healthy": 1, "Tumor": -1}
     if os.path.isdir(ct_directory) and os.path.isdir(mri_directory):
         for class_name in classes:
             ct_class_path = os.path.join(ct_directory, class_name)
@@ -63,9 +61,10 @@ def extract_brain_tumor_dataset():
 
 if __name__ == "__main__":
     img_paths, labels = extract_brain_tumor_dataset()
+    print(len(img_paths))
     print(img_paths[:5])
     print(labels[:5])
     img = Image.open(img_paths[100])
     # img = transforms.ToPILImage()(img)
     print(img.size)
-    img.show()
+    # img.show()

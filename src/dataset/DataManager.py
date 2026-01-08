@@ -2,7 +2,7 @@ import os
 
 import torch
 from matplotlib import pyplot as plt
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader, random_split, Subset, ConcatDataset, Dataset
 from torchvision import datasets, transforms
 
 from src.dataset.brain_tumor import BRAINTUMOR, extract_brain_tumor_dataset
@@ -31,18 +31,20 @@ class DataManager:
         pixel_size: int,
         dataset="mnist",
         transform=None,
+        make_binary=False,
     ):
+        self.make_binary = make_binary
         self.batch_size = batch_size
         self.generator = torch.Generator().manual_seed(seed)
         if transform is None:
-            transform = transforms.Resize((pixel_size, pixel_size))
+            transform = transforms.Compose([transforms.Resize((pixel_size, pixel_size)), transforms.PILToTensor()])
         elif transform == "greyscale":
             transform = transforms.Compose(
-                [transforms.Grayscale(), transforms.Resize((pixel_size, pixel_size))]
+                [transforms.Grayscale(), transforms.Resize((pixel_size, pixel_size)), transforms.PILToTensor()]
             )
         elif transform == "normalise":
             transform = transforms.Compose(
-                [transforms.ToTensor(), transforms.Resize((pixel_size, pixel_size))]
+                [transforms.ToTensor(), transforms.Resize((pixel_size, pixel_size)), transforms.PILToTensor()]
             )
         else:
             raise ValueError(
@@ -66,36 +68,7 @@ class DataManager:
             test_ds = datasets.MNIST(
                 root=self.root, train=False, download=True, transform=self.transform
             )
-            all_data = torch.utils.data.ConcatDataset([full_train, test_ds])
-
-        elif dataset == "mnist_binary":
-            full_train = datasets.MNIST(
-                root=self.root, train=True, download=True, transform=self.transform
-            )
-            test_ds = datasets.MNIST(
-                root=self.root, train=False, download=True, transform=self.transform
-            )
-
-            # Select digits for binary classification
-            DIGIT_A = 0  # <-- choose here
-            DIGIT_B = 1
-
-            train_mask = (full_train.targets == DIGIT_A) | (
-                full_train.targets == DIGIT_B
-            )
-            test_mask = (test_ds.targets == DIGIT_A) | (test_ds.targets == DIGIT_B)
-
-            # Filtered dataset for selected digits
-            full_train.data = full_train.data[train_mask]
-            full_train.targets = full_train.targets[train_mask]
-            test_ds.data = test_ds.data[test_mask]
-            test_ds.targets = test_ds.targets[test_mask]
-
-            # and labels mapped - DIGIT_A → -1, DIGIT_B → +1
-            full_train.targets = torch.where(full_train.targets == DIGIT_A, -1.0, 1.0)
-            test_ds.targets = torch.where(test_ds.targets == DIGIT_A, -1.0, 1.0)
-
-            all_data = full_train
+            all_data = ConcatDataset([full_train, test_ds])
 
         elif dataset == "fashion":
             full_train = datasets.FashionMNIST(
@@ -104,7 +77,7 @@ class DataManager:
             test_ds = datasets.FashionMNIST(
                 root=self.root, train=False, download=True, transform=self.transform
             )
-            all_data = torch.utils.data.ConcatDataset([full_train, test_ds])
+            all_data = ConcatDataset([full_train, test_ds])
 
         elif dataset == "cifar10":
             full_train = datasets.CIFAR10(
@@ -113,7 +86,7 @@ class DataManager:
             test_ds = datasets.CIFAR10(
                 root=self.root, train=False, download=True, transform=self.transform
             )
-            all_data = torch.utils.data.ConcatDataset([full_train, test_ds])
+            all_data = ConcatDataset([full_train, test_ds])
 
         elif dataset == "stl10":
             full_train = datasets.STL10(
@@ -122,13 +95,10 @@ class DataManager:
             test_ds = datasets.STL10(
                 root=self.root, split="test", download=True, transform=self.transform
             )
-            all_data = torch.utils.data.ConcatDataset([full_train, test_ds])
+            all_data = ConcatDataset([full_train, test_ds])
 
         elif dataset == "cxr8":
             img_paths, labels = extract_chest_xray_dataset()
-            all_data = CXR8(img_paths, labels, transform=self.transform)
-        elif dataset == "cxr8_binary":
-            img_paths, labels = extract_chest_xray_dataset(binary=True)
             all_data = CXR8(img_paths, labels, transform=self.transform)
         elif dataset == "brain_tumor":
             img_paths, labels = extract_brain_tumor_dataset()
@@ -144,7 +114,44 @@ class DataManager:
                 "Unsupported dataset. Choose 'mnist{_binary}', 'fashion', 'cifar10', 'stl10', 'cxr8{_binary}', 'brain_tumor' or 'eurosat_{rgb,ms}'."
             )
 
+        if self.make_binary and dataset != "brain_tumor":
+            class_a = 0  # <-- choose here
+            class_b = 1
+            all_data = self.make_binary_dataset(all_data,class_a,class_b)
+
         return all_data
+
+    class _BinaryDataset(Dataset):
+        def __init__(self, dataset, class_a, class_b, neg=-1, pos=1):
+            self.dataset = dataset
+            self.class_a = class_a
+            self.class_b = class_b
+            self.neg = neg
+            self.pos = pos
+
+            self.indices = [
+                i for i in range(len(dataset))
+                if dataset[i][1] == class_a or dataset[i][1] == class_b
+            ]
+
+        def __len__(self):
+            return len(self.indices)
+
+        def __getitem__(self, idx):
+            x, y = self.dataset[self.indices[idx]]
+            y = self.neg if y == self.class_a else self.pos
+            return x, y
+
+    def make_binary_dataset(self, dataset, class_a, class_b, negative_label=-1, positive_label=1):
+        """
+        Convert ANY dataset (including ConcatDataset) into a binary dataset.
+        Labels are mapped to {negative_label, positive_label}.
+        """
+
+        if isinstance(dataset, ConcatDataset):
+            return ConcatDataset([self.make_binary_dataset(ds, class_a, class_b, negative_label, positive_label) for ds in dataset.datasets])
+
+        return self._BinaryDataset(dataset, class_a, class_b, negative_label, positive_label)
 
     def get_loaders(self, train_split: float, val_split: float, test_split: float):
         """
@@ -194,17 +201,17 @@ class DataManager:
         )
         return train_loader, val_loader, test_loader
 
-
 # Example usage
 if __name__ == "__main__":
-    dm = DataManager(batch_size=100, seed=42, dataset="stl10", pixel_size=64)
+    dm = DataManager(batch_size=100, seed=42, dataset="mnist", pixel_size=64, make_binary=True)
     print(dm.root)
-    # train, val, test = dm.get_loaders(0.8, 0.1, 0.1)
-    # print(
-    #     f"Train loader length: {len(train)}, Val loader length: {len(val)}, Test loader length: {len(test)}"
-    # )
+    train, val, test = dm.get_loaders(0.8, 0.1, 0.1)
+    print(f"Train loader length: {len(train)}, Val loader length: {len(val)}, Test loader length: {len(test)}")
     # img, label = train.dataset[0]
-    # print(img.shape)
+    # print(img.size)
     # print(label)
-    # img = transforms.ToPILImage()(img)
+    for img, label in train:
+        print(img.size())
+        print(label)
+        break
     # img.show()
