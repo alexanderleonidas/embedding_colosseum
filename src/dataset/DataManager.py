@@ -9,6 +9,15 @@ from src.dataset.brain_tumor import BRAINTUMOR, extract_brain_tumor_dataset
 from src.dataset.cxr8 import CXR8, extract_chest_xray_dataset
 from src.dataset.eurosat import EUROSAT, extract_eurosat_dataset
 
+try:
+    import ssl
+    import certifi
+
+    ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
+except Exception as _:
+    # If certifi isn't available or something fails, keep default context and warn
+    import warnings
+    warnings.warn("Could not set certifi SSL context; HTTPS downloads may fail. Install certifi with: pip install certifi")
 
 class DataManager:
     """
@@ -21,11 +30,13 @@ class DataManager:
         seed: int,
         pixel_size: int,
         dataset="mnist",
-        transform="normalise",
+        transform=None,
     ):
         self.batch_size = batch_size
         self.generator = torch.Generator().manual_seed(seed)
-        if transform == "greyscale":
+        if transform is None:
+            transform = transforms.Resize((pixel_size, pixel_size))
+        elif transform == "greyscale":
             transform = transforms.Compose(
                 [transforms.Grayscale(), transforms.Resize((pixel_size, pixel_size))]
             )
@@ -186,7 +197,7 @@ class DataManager:
 
 # Example usage
 if __name__ == "__main__":
-    dm = DataManager(batch_size=100, seed=42, dataset="eurosat_rgb", pixel_size=64)
+    dm = DataManager(batch_size=100, seed=42, dataset="stl10", pixel_size=64)
     print(dm.root)
     # train, val, test = dm.get_loaders(0.8, 0.1, 0.1)
     # print(

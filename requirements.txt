@@ -1,6 +1,7 @@
 ipykernel
 matplotlib
 numpy
+tqdm
 torchvision
 torch
 keras
@@ -8,10 +9,3 @@ pandas
 h5py
 tensorflow
 pennylane
-qiskit==0.45
-pennylane_qiskit
-qiskit-aer
-qiskit_algorithms
-qiskit_machine_learning
-qiskit-ibmq-provider
-qiskit_ibm_provider

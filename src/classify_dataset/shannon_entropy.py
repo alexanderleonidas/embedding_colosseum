@@ -24,7 +24,6 @@ def compute_shannon_entropy_from_dataloader(dataloader: DataLoader, bins: int = 
             - 'max_entropy': Maximum entropy
             - 'per_class_stats': Dictionary with entropy stats per class (if labels available)
     """
-
     # Set device
     if torch.cuda.is_available():
         device = torch.device('cuda')
@@ -138,41 +137,33 @@ def compute_shannon_entropy_from_dataloader(dataloader: DataLoader, bins: int = 
             }
         results['per_class_stats'] = per_class_stats
 
-    # Print summary
-    print(f"\n{'=' * 50}")
-    print("SHANNON ENTROPY SUMMARY")
-    print(f"{'=' * 50}")
-    print(f"Total images processed: {results['total_images']}")
-    print(f"Mean entropy: {results['mean_entropy']:.4f} ± {results['std_entropy']:.4f}")
-    print(f"Entropy range: [{results['min_entropy']:.4f}, {results['max_entropy']:.4f}]")
-    if normalize:
-        print("Note: Entropy normalized to [0, 1] (divided by log2(bins))")
-
-    if 'per_class_stats' in results:
-        print(f"\nPer-class statistics:")
-        for class_label, stats in results['per_class_stats'].items():
-            print(f"  Class {class_label}: {stats['count']} images, "
-                  f"mean = {stats['mean']:.4f} ± {stats['std']:.4f}")
-
     return results
 
 if __name__ == '__main__':
-    dm = DataManager(batch_size=100, seed=42, pixel_size=28, dataset="mnist")
-    train_loader, _, _ = dm.get_loaders(1,0,0)
+    exp_dict = {"mnist": 28, "fashion": 28, "cifar10": 32, "stl10": 96, "cxr8": 1024, "brain_tumor": 640, "eurosat_rgb": 64}
+    for dataset_name, pixel_size in exp_dict.items():
+        dm = DataManager(batch_size=100, seed=42, pixel_size=pixel_size, dataset=dataset_name)
+        train_loader, _, _ = dm.get_loaders(1,0,0)
 
-    # Compute entropy (CPU version)
-    results = compute_shannon_entropy_from_dataloader(train_loader,bins=256,normalize=True)
+        # Compute entropy (CPU version)
+        results = compute_shannon_entropy_from_dataloader(train_loader,bins=256,normalize=True)
 
-    # Accessing results
-    print(f"\nAccessing specific results")
-    print(f"First 5 entropy values: {results['entropies'][:5]}")
+        # Print summary
+        print(f"\n{'=' * 50}")
+        print("Shannon entropy summary for dataset:", dataset_name)
+        print(f"{'=' * 50}")
+        print(f"Total images processed: {results['total_images']}")
+        print(f"Mean entropy: {results['mean_entropy']:.4f} ± {results['std_entropy']:.4f}")
+        print(f"Entropy range: [{results['min_entropy']:.4f}, {results['max_entropy']:.4f}]")
 
-    # Per-class analysis
-    if 'per_class_stats' in results:
-        print(f"\nExample 3: Most complex class")
-        max_mean_class = max(
-            results['per_class_stats'].items(),
-            key=lambda x: x[1]['mean']
-        )
-        print(f"Class with highest mean entropy: {max_mean_class[0]} "
-              f"({max_mean_class[1]['mean']:.4f})")
+        if 'per_class_stats' in results:
+            print(f"\nPer-class statistics:")
+            for class_label, stats in results['per_class_stats'].items():
+                print(f"  Class {class_label}: {stats['count']} images, "
+                      f"mean = {stats['mean']:.4f} ± {stats['std']:.4f}")
+
+        # Per-class analysis
+        if 'per_class_stats' in results:
+            max_mean_class = max(results['per_class_stats'].items(),key=lambda x: x[1]['mean'])
+            print(f"Class with highest mean entropy: {max_mean_class[0]} "
+                  f"({max_mean_class[1]['mean']:.4f})")
