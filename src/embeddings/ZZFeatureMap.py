@@ -15,8 +15,8 @@ class ZZFeatureMapEmbedding:
         # PQCs/Feature maps require preprocessing in the form of dimensionlaity reduction, as they dont have a clever approahc like QIR, but pass
         # thorugh and encode all the pixels, so either encoding 1 pixel per qubit, or one rotation per pixel on a few qubits, in any way the circuits
         # will be deep and likely not feasible to run
-        # So this PQC is designed to take a reduced vector of featurs after preproecessing, and maps each feature to qubit
-        # num_features = dimensionality of the classical feature vector (e.g., PCA output dimension)
+        # So this PQC is designed to take a reduced vector of featurs after preprocessing (likely tied to PCA always), and maps each feature to qubit
+        # num_features = dimensionality of the classical feature vector (PCA output dimension)
         
         self.num_features = num_features
         self.num_qubits = num_features
