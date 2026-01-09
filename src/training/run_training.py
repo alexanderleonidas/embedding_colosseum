@@ -11,8 +11,10 @@ from rich import print
 from src.dataset.DataManager import DataManager
 from src.embeddings.FRQI_PennyLane import FRQI
 from src.embeddings.NEQR_PennyLane import NEQR
+from src.embeddings.ZZFeatureMap import ZZFeatureMapEmbedding
 from src.model.VariationalClassifier import VariationalClassifier
 from src.utils.save_training_progress import TrainingLogger
+from src.preprocessing.pca import transform_to_pca_loader
 
 log = logging.getLogger(__name__)
 device = (
@@ -48,6 +50,8 @@ def run_classifier(cfg):
         embedding = FRQI(num_pixels=cfg.training.image_width * cfg.training.image_width)
     elif cfg.embedding == "NEQR":
         embedding = NEQR(num_pixels=cfg.training.image_width * cfg.training.image_width)
+    elif cfg.embedding == "ZZFeatureMap":
+        embedding = ZZFeatureMapEmbedding(num_features=6)
     else:
         raise ValueError("Unknown embedding method")
 
@@ -56,12 +60,23 @@ def run_classifier(cfg):
         seed=cfg.seed,
         dataset="mnist",
         pixel_size=cfg.training.image_width,  # pixel size set above
+        make_binary=True,
     )
     train_loader, validation_loader, test_loader = dm.get_loaders(
         train_split=0.7,
         val_split=0.2,
         test_split=0.1,
     )
+
+    # applying PCA for PQC-based embeddings
+    if cfg.embedding == "ZZFeatureMap":
+        train_loader, validation_loader, test_loader = transform_to_pca_loader(
+            train_loader,
+            validation_loader,
+            test_loader,
+            batch_size=cfg.training.batch_size,
+            n_components=embedding.num_features,
+        )
 
     model = VariationalClassifier(
         num_qubits=embedding.num_qubits,

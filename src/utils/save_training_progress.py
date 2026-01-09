@@ -15,6 +15,7 @@ class TrainingLogger:
     # Procedure to save a trained model
     def save_model_weights_and_bias(self, weights, bias, epoch):
         filename = self._get_filename(".pt", f"saved_models/model_epoch-{epoch}")
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
         copy_dict = {"weights": copy(weights), "bias": copy(bias)}
         torch.save(copy_dict, filename)
         print(f"Model dict saved to {filename}")

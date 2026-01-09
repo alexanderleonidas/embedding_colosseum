@@ -57,7 +57,7 @@ class VariationalClassifier:
         # Otherwise, use the accelerated CPU version: lightning.qubit
         # Use lightning.gpu if CUDA is available, otherwise fall back to lightning.qubit
 
-        q_device = qml.device("default.qubit", wires=self.num_qubits)
+        q_device = qml.device("lightning.qubit", wires=self.num_qubits)
 
         #   -> Gives compatibility with Torch optimizers and autograd (under circumstances)
         #

@@ -1,4 +1,4 @@
-epochs: 3
-batch_size: 100
-image_width: 20 # Number of pixels on one side of the square image
+epochs: 1
+batch_size: 32
+image_width: 8 # Number of pixels on one side of the square image
 lr: 0.05

@@ -122,7 +122,7 @@ class DataManager:
         return all_data
 
     class _BinaryDataset(Dataset):
-        def __init__(self, dataset, class_a, class_b, neg=-1, pos=1):
+        def __init__(self, dataset, class_a, class_b, neg=0, pos=1):
             self.dataset = dataset
             self.class_a = class_a
             self.class_b = class_b
@@ -142,7 +142,7 @@ class DataManager:
             y = self.neg if y == self.class_a else self.pos
             return x, y
 
-    def make_binary_dataset(self, dataset, class_a, class_b, negative_label=-1, positive_label=1):
+    def make_binary_dataset(self, dataset, class_a, class_b, negative_label=0, positive_label=1):
         """
         Convert ANY dataset (including ConcatDataset) into a binary dataset.
         Labels are mapped to {negative_label, positive_label}.
