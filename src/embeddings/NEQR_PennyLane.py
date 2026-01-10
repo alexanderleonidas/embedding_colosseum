@@ -30,8 +30,6 @@ class NEQR:
         self.num_color_qubits = bit_depth
         self.num_qubits = self.num_pos_qubits + self.num_color_qubits
 
-        self.device = qml.device("default.qubit", wires=self.num_qubits)
-
     def preprocess(self, pixels):
         # Convert pixels to integer grayscale values in [0, 2^bit_depth - 1].
 
@@ -100,8 +98,20 @@ class NEQR:
     # This state_preparation was copied from encode()
     # to be used inside a VQC (same structure as FRQI.state_preparation)
     def state_preparation(self, X):
-        pixels = X.flatten()  # torch tensor in [0,1] or [0,255]
-        pixels = pixels.to(device)
+        # pixels = X.flatten()  # torch tensor in [0,1] or [0,255]
+        pixels = X
+
+        # Allow both single-sample (num_pixels,) and batched (B, num_pixels) inputs
+        if pixels.dim() == 1 or pixels.shape[0] == 1:
+            pixels = pixels.flatten()
+        else:
+            # keep batch dim, flatten remaining dims
+            raise NotImplementedError(
+                "NEQR state_preparation currently does not handle batches."
+            )
+            pixels = torch.flatten(pixels, start_dim=1)
+
+        pixels = pixels.to(device).float()
 
         # --- PREPROCESS (Torch version of preprocess()) ---
         # Normalize if needed
