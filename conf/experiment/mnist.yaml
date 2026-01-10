@@ -1,0 +1,17 @@
+# @package _global_
+
+# Override defaults for this specific experiment
+defaults:
+  - override /hydra/sweeper: basic
+
+# Define the parameters to sweep over
+hydra:
+  sweeper:
+    params:
+      embedding: FRQI, NEQR, ZZFeatureMap
+      training.image_width: 2, 4, 6, 8, 10
+      training.batch_size: 100
+      dataset.name: mnist
+
+# Execute with:
+# uv run main.py +experiment=mnist -m

@@ -17,8 +17,8 @@ class FRQI:
     def __init__(self, num_pixels):
         self.num_pixels = num_pixels
         self.num_qubits = (
-            int(math.log2(num_pixels)) + 1
-        )  # for a (2^N*2^N) image, the #_of_qbits = log2(num_pixels) +1 for color qubit
+            math.ceil(math.log2(num_pixels)) + 1
+        )  # for a (2^N*2^N) image, the #_of_qbits = ceil(log2(num_pixels)) +1 for color qubit
         self.device = qml.device("default.qubit", wires=self.num_qubits)
 
     # Maps the normalized pixel values ([0,1]) into rotation angles [0, π/2]
@@ -88,10 +88,9 @@ class FRQI:
             pixels = pixels.flatten()
         else:
             # keep batch dim, flatten remaining dims
-            batch_size = pixels.shape[0]
-            pixels = pixels.view(batch_size, -1)
+            pixels = torch.flatten(pixels, start_dim=1)
 
-        pixels = pixels.to(device)
+        pixels = pixels.to(device).float()
 
         # the DataManager should handle normalization in resize_images, but just in case it is not always so
         # if pixels.max() > 1.5:
@@ -119,7 +118,8 @@ class FRQI:
 
         # encoding each pixels brightness into the color qubit
         # now matches the Qiskit implementation more closely, differs only in which bits are flipped before/after the rotation
-        for i, theta in enumerate(angles):
+        num_pixels = angles.shape[-1] if batch_mode else angles.shape[0]
+        for i in range(num_pixels):
             # converting i to binary/basis states, to iterate over each state's position qubits
             binary = np.binary_repr(i, width=num_pos_qubits)
 

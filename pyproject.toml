@@ -14,6 +14,7 @@ dependencies = [
     "matplotlib>=3.10.6",
     "pandas>=2.3.3",
     "pennylane>=0.42.3",
+    "scikit-learn>=1.8.0",
     "seaborn>=0.13.2",
     "tensorflow>=2.18.1",
     "torch>=2.9.0",
