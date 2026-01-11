@@ -1,8 +1,9 @@
 import os
+from typing import Literal
 
 import torch
 from matplotlib import pyplot as plt
-from torch.utils.data import DataLoader, random_split, Subset, ConcatDataset, Dataset
+from torch.utils.data import ConcatDataset, DataLoader, Dataset, Subset, random_split
 from torchvision import datasets, transforms
 
 from src.dataset.brain_tumor import BRAINTUMOR, extract_brain_tumor_dataset
@@ -11,13 +12,20 @@ from src.dataset.eurosat import EUROSAT, extract_eurosat_dataset
 
 try:
     import ssl
+
     import certifi
 
-    ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
+    ssl._create_default_https_context = lambda: ssl.create_default_context(
+        cafile=certifi.where()
+    )
 except Exception as _:
     # If certifi isn't available or something fails, keep default context and warn
     import warnings
-    warnings.warn("Could not set certifi SSL context; HTTPS downloads may fail. Install certifi with: pip install certifi")
+
+    warnings.warn(
+        "Could not set certifi SSL context; HTTPS downloads may fail. Install certifi with: pip install certifi"
+    )
+
 
 class DataManager:
     """
@@ -29,7 +37,16 @@ class DataManager:
         batch_size: int,
         seed: int,
         pixel_size: int,
-        dataset="mnist",
+        dataset: Literal[
+            "mnist",
+            "fashion",
+            "cifar10",
+            "stl10",
+            "cxr8",
+            "eurosat_ms",
+            "eurosat_rgb",
+            "brain_tumor",
+        ] = "mnist",
         transform=None,
         make_binary=False,
     ):
@@ -37,14 +54,24 @@ class DataManager:
         self.batch_size = batch_size
         self.generator = torch.Generator().manual_seed(seed)
         if transform is None:
-            transform = transforms.Compose([transforms.Resize((pixel_size, pixel_size)), transforms.PILToTensor()])
+            transform = transforms.Compose(
+                [transforms.Resize((pixel_size, pixel_size)), transforms.PILToTensor()]
+            )
         elif transform == "greyscale":
             transform = transforms.Compose(
-                [transforms.Grayscale(), transforms.Resize((pixel_size, pixel_size)), transforms.PILToTensor()]
+                [
+                    transforms.Grayscale(),
+                    transforms.Resize((pixel_size, pixel_size)),
+                    transforms.PILToTensor(),
+                ]
             )
         elif transform == "normalise":
             transform = transforms.Compose(
-                [transforms.ToTensor(), transforms.Resize((pixel_size, pixel_size)), transforms.PILToTensor()]
+                [
+                    transforms.ToTensor(),
+                    transforms.Resize((pixel_size, pixel_size)),
+                    transforms.PILToTensor(),
+                ]
             )
         else:
             raise ValueError(
@@ -117,7 +144,7 @@ class DataManager:
         if self.make_binary and dataset != "brain_tumor":
             class_a = 0  # <-- choose here
             class_b = 1
-            all_data = self.make_binary_dataset(all_data,class_a,class_b)
+            all_data = self.make_binary_dataset(all_data, class_a, class_b)
 
         return all_data
 
@@ -130,7 +157,8 @@ class DataManager:
             self.pos = pos
 
             self.indices = [
-                i for i in range(len(dataset))
+                i
+                for i in range(len(dataset))
                 if dataset[i][1] == class_a or dataset[i][1] == class_b
             ]
 
@@ -142,16 +170,27 @@ class DataManager:
             y = self.neg if y == self.class_a else self.pos
             return x, y
 
-    def make_binary_dataset(self, dataset, class_a, class_b, negative_label=0, positive_label=1):
+    def make_binary_dataset(
+        self, dataset, class_a, class_b, negative_label=0, positive_label=1
+    ):
         """
         Convert ANY dataset (including ConcatDataset) into a binary dataset.
         Labels are mapped to {negative_label, positive_label}.
         """
 
         if isinstance(dataset, ConcatDataset):
-            return ConcatDataset([self.make_binary_dataset(ds, class_a, class_b, negative_label, positive_label) for ds in dataset.datasets])
+            return ConcatDataset(
+                [
+                    self.make_binary_dataset(
+                        ds, class_a, class_b, negative_label, positive_label
+                    )
+                    for ds in dataset.datasets
+                ]
+            )
 
-        return self._BinaryDataset(dataset, class_a, class_b, negative_label, positive_label)
+        return self._BinaryDataset(
+            dataset, class_a, class_b, negative_label, positive_label
+        )
 
     def get_loaders(self, train_split: float, val_split: float, test_split: float):
         """
@@ -201,12 +240,17 @@ class DataManager:
         )
         return train_loader, val_loader, test_loader
 
+
 # Example usage
 if __name__ == "__main__":
-    dm = DataManager(batch_size=100, seed=42, dataset="mnist", pixel_size=64, make_binary=True)
+    dm = DataManager(
+        batch_size=100, seed=42, dataset="mnist", pixel_size=64, make_binary=True
+    )
     print(dm.root)
     train, val, test = dm.get_loaders(0.8, 0.1, 0.1)
-    print(f"Train loader length: {len(train)}, Val loader length: {len(val)}, Test loader length: {len(test)}")
+    print(
+        f"Train loader length: {len(train)}, Val loader length: {len(val)}, Test loader length: {len(test)}"
+    )
     # img, label = train.dataset[0]
     # print(img.size)
     # print(label)

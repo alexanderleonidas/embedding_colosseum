@@ -11,12 +11,13 @@ defaults:
 
 # Random seed
 seed: 0
-embedding: FRQI
+embedding: ZZFeatureMap
 # embedding: FRQI, NEQR, ZZFeatureMap
 
 dataset:
-  name: mnist
+  name: stl10
   num_classes: 2
+  binary: True
 
 
 # Extra configuration for logging

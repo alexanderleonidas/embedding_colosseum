@@ -59,9 +59,9 @@ def run_classifier(cfg):
     dm = DataManager(
         batch_size=cfg.training.batch_size,
         seed=cfg.seed,
-        dataset="mnist",
+        dataset=cfg.dataset.name,
         pixel_size=cfg.training.image_width,  # pixel size set above
-        make_binary=True,
+        make_binary=cfg.dataset.binary,
     )
     train_loader, validation_loader, test_loader = dm.get_loaders(
         train_split=0.7,

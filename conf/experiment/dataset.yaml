@@ -8,11 +8,13 @@ defaults:
 hydra:
   sweeper:
     params:
-      seed: 0, 1
-      embedding: FRQI, ZZFeatureMap #, NEQR
-      training.image_width: 3, 4, 6, 8, 10
+      seed: 0
+      embedding: ZZFeatureMap
+      training.image_width: 3
       training.batch_size: 100
-      dataset.name: mnist
+      dataset.name: mnist, fashion, cifar10, stl10, cxr8, eurosat_ms, eurosat_rgb, brain_tumor
 
 # Execute with:
-# uv run main.py +experiment=mnist -m
+# uv run main.py +experiment=dataset -m
+
+
