@@ -3,13 +3,14 @@ import numpy as np
 from torch.utils.data import DataLoader
 from collections import defaultdict
 import tqdm
+import os
 from dataset.DataManager import DataManager
 
 
 def compute_edge_density_from_dataloader(
     dataloader: DataLoader,
     threshold: float = 0.1,
-    normalize: bool = True
+    normalise: bool = True
 ) -> dict:
     """
     Compute edge density for all images in a PyTorch DataLoader using Sobel filters.
@@ -17,7 +18,7 @@ def compute_edge_density_from_dataloader(
     Args:
         dataloader: PyTorch DataLoader yielding (images, labels) or images
         threshold: Gradient magnitude threshold for edge detection
-        normalize: Whether to return density in [0, 1] (default True)
+        normalise: Whether to return density in [0, 1] (default True)
 
     Returns:
         Dictionary containing:
@@ -103,7 +104,7 @@ def compute_edge_density_from_dataloader(
                 edge_pixels = edges.sum().item()
                 total_pixels = edges.numel()
 
-                density = edge_pixels / total_pixels if normalize else edge_pixels
+                density = edge_pixels / total_pixels if normalise else edge_pixels
                 edge_densities.append(density)
 
                 if labels is not None:
@@ -121,7 +122,7 @@ def compute_edge_density_from_dataloader(
         "min_edge_density": float(np.min(edge_densities)),
         "max_edge_density": float(np.max(edge_densities)),
         "threshold": threshold,
-        "normalized": normalize,
+        "normalised": normalise,
         "total_images": len(edge_densities)
     }
 
@@ -142,13 +143,22 @@ def compute_edge_density_from_dataloader(
 
 
 if __name__ == "__main__":
-    # exp_dict = {"mnist": 28, "fashion": 28, "cifar10": 32, "stl10": 96, "cxr8": 1024, "brain_tumor": 640, "eurosat_rgb": 64}
-    exp_dict = {"cifar10": 32}
+    exp_dict = {"mnist": 28, "fashion": 28, "cifar10": 32, "stl10": 96, "cxr8": 1024, "brain_tumor": 640, "eurosat_rgb": 64}
+    # exp_dict = {"cifar10": 32}
     for dataset_name, pixel_size in exp_dict.items():
         dm = DataManager(batch_size=100,seed=42,pixel_size=pixel_size,dataset=dataset_name)
         train_loader, _, _ = dm.get_loaders(1, 0, 0)
 
         results = compute_edge_density_from_dataloader(train_loader,threshold=0.1,normalize=True)
+
+        # Save results to CSV
+        file_name = f"edge_density_results_threshold_{results['threshold']}_normalize_{results['normalised']}.csv"
+        file_exists = os.path.isfile(file_name)
+        with open(file_name, "w") as f:
+            if not file_exists:
+                f.write("dataset,mean_edge_density,std_edge_density,min_edge_density,max_edge_density\n")
+
+            f.write(f"{dataset_name},{results['mean_edge_density']},{results['std_edge_density']}, {results['min_edge_density']},{results['max_edge_density']}\n")
 
         print(f"\n{'=' * 50}")
         print("Edge density summary for dataset:", dataset_name)

@@ -24,9 +24,9 @@ class CXR8(Dataset):
         return img, label
 
 
-def extract_chest_xray_dataset():
-    root = "./data/CXR8/images"
-    csv_path = "./data/CXR8/Data_Entry_2017_v2020.csv"
+def extract_chest_xray_dataset(root):
+    data_folder = os.path.join(root, 'CXR8', 'images')
+    csv_path = os.path.join(root,'CXR8','Data_Entry_2017_v2020.csv')
     class_to_label = {
         "No Finding": 0,
         "Infiltration": 1,
@@ -47,8 +47,8 @@ def extract_chest_xray_dataset():
 
     img_paths = []
     labels = []
-    if not os.path.isdir(root):
-        print(f"\nImages folder not found: {root}")
+    if not os.path.isdir(data_folder):
+        print(f"\nImages folder not found: {data_folder}")
         return img_paths, labels
 
     # read the necessary columns only and build a lookup dict to avoid O(n^2) dataframe scans
@@ -56,10 +56,10 @@ def extract_chest_xray_dataset():
     mapping = dict(zip(data_entry["Image Index"], data_entry["Finding Labels"]))
 
     # faster directory listing with scandir
-    with os.scandir(root) as it:
+    with os.scandir(data_folder) as it:
         files = [entry.name for entry in it if entry.is_file()]
     files.sort()
-    img_paths = [os.path.join(root, f) for f in files]
+    img_paths = [os.path.join(data_folder, f) for f in files]
 
     # lookup first label via dict (O(1) per file)
     first_labels = [mapping.get(f, "").split("|")[0] for f in files]
@@ -80,5 +80,6 @@ def extract_chest_xray_dataset():
 
 if __name__ == "__main__":
     img_paths, labels = extract_chest_xray_dataset()
+    print("Total images: ", len(img_paths))
     print(img_paths[:5])
     print(labels[:5])

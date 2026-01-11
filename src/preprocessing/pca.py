@@ -33,12 +33,12 @@ def transform_to_pca_loader(train_loader, val_loader, test_loader, batch_size=32
         x = x.view(x.shape[0], -1) # flatten the image
         train_features.append(x)
         train_labels.append(y)
-    train_features = torch.cat(train_features, dim=0)  # shape (60000, 784)
+    train_features = torch.cat(train_features, dim=0)  # example shape (60000, 784) for MNIST
     train_labels = torch.cat(train_labels, dim=0)
 
     pca = PCA(n_components=n_components)
     pca.fit(train_features.cpu().numpy())
-    train_pca = pca.transform(train_features.cpu().numpy())    # np array (60000, n_components)
+    train_pca = pca.transform(train_features.cpu().numpy())    # example np array (60000, n_components) for MNIST
     train_pca = torch.tensor(train_pca, dtype=torch.float32)
 
     # Stack validation data

@@ -23,12 +23,12 @@ class EUROSAT(Dataset):
         return img, label
 
 
-def extract_eurosat_dataset(rgb=True):
-    root = "./data/EuroSAT"
+def extract_eurosat_dataset(root, rgb=True):
+    data_folder = os.path.join(root, "EuroSAT")
     if rgb:
-        root = os.path.join(root, "EuroSAT_RGB")
+        data_folder = os.path.join(data_folder, "EuroSAT_RGB")
     else:
-        root = os.path.join(root, "EuroSAT_geo")
+        data_folder = os.path.join(data_folder, "EuroSAT_geo")
     classes = [
         "AnnualCrop",
         "Forest",
@@ -56,9 +56,9 @@ def extract_eurosat_dataset(rgb=True):
 
     img_paths = []
     labels = []
-    if os.path.isdir(root):
+    if os.path.isdir(data_folder):
         for class_name in classes:
-            class_path = os.path.join(root, class_name)
+            class_path = os.path.join(data_folder, class_name)
             if os.path.isdir(class_path):
                 img_files = [
                     f

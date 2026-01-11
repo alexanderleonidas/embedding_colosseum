@@ -1,4 +1,5 @@
 import torch
+import os
 import numpy as np
 from torch.utils.data import DataLoader
 from collections import defaultdict
@@ -65,7 +66,6 @@ def compute_shannon_entropy_from_dataloader(dataloader: DataLoader, bins: int = 
                 # Convert to grayscale if RGB (weighted average)
                 if image.shape[0] == 3:  # RGB: [C, H, W]
                     # Convert to grayscale using luminance weights
-                    # Using PyTorch operations for GPU compatibility
                     gray_image = (0.299 * image[0] + 0.587 * image[1] + 0.114 * image[2])
                     intensity_tensor = gray_image
                 elif image.shape[0] == 1:  # Grayscale: [1, H, W]
@@ -147,6 +147,16 @@ if __name__ == '__main__':
 
         # Compute entropy (CPU version)
         results = compute_shannon_entropy_from_dataloader(train_loader,bins=256,normalize=True)
+
+        # Save results to CSV
+        file_name = f"shannon_entropy_results_bins_{results['bins']}_normalize_{results['normalised']}.csv"
+        file_exists = os.path.isfile(file_name)
+        with open(file_name, "w") as f:
+            if not file_exists:
+                f.write("dataset,mean_entropy,std_entropy,min_entropy,max_entropy\n")
+
+            f.write(
+                f"{dataset_name},{results['mean_entropy']},{results['std_entropy']}, {results['min_entropy']},{results['max_entropy']}\n")
 
         # Print summary
         print(f"\n{'=' * 50}")
