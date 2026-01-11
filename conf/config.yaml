@@ -12,7 +12,7 @@ defaults:
 # Random seed
 seed: 0
 embedding: ZZFeatureMap
-# embedding: FRQI, NEQR, ZZFeatureMap
+# embedding: FRQI, NEQR, ZZFeatureMap, AngleEncoding, RMP
 
 dataset:
   name: stl10

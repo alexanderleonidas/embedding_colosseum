@@ -67,7 +67,7 @@ def transform_to_pca_loader(train_loader, val_loader, test_loader, batch_size=32
     test_pca = pca.transform(test_features.cpu().numpy())
     test_pca = torch.tensor(test_pca, dtype=torch.float32)
 
-    train_pca = normalize_to_angles(train_pca) # I PUT IT HERE ITS GOOD?
+    train_pca = normalize_to_angles(train_pca) 
     val_pca   = normalize_to_angles(val_pca)
     test_pca  = normalize_to_angles(test_pca)
 
@@ -91,4 +91,3 @@ if __name__ == "__main__":
     print(pca_train[0][0].shape)
     print(pca_val[0][0].shape)
     print(pca_test[0][0].shape)
-

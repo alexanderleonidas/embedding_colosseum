@@ -13,6 +13,8 @@ from src.dataset.DataManager import DataManager
 from src.embeddings.FRQI_PennyLane import FRQI
 from src.embeddings.NEQR_PennyLane import NEQR
 from src.embeddings.ZZFeatureMap import ZZFeatureMapEmbedding
+from src.embeddings.AngleEncoding import AngleEncodingEmbedding
+from src.embeddings.RMP_Prototype import RMPEmbedding
 from src.model.VariationalClassifier import VariationalClassifier
 from src.preprocessing.pca import transform_to_pca_loader
 from src.utils.save_training_progress import TrainingLogger
@@ -53,6 +55,10 @@ def run_classifier(cfg):
         embedding = NEQR(num_pixels=cfg.training.image_width * cfg.training.image_width)
     elif cfg.embedding == "ZZFeatureMap":
         embedding = ZZFeatureMapEmbedding(num_features=6)
+    elif cfg.embedding == "AngleEncoding":
+        embedding = AngleEncodingEmbedding(num_features=6)
+    elif cfg.embedding == "RMP":
+        embedding = RMPEmbedding(num_features=6, alpha=0.5)
     else:
         raise ValueError("Unknown embedding method")
 
@@ -69,8 +75,8 @@ def run_classifier(cfg):
         test_split=0.1,
     )
 
-    # applying PCA for PQC-based embeddings
-    if cfg.embedding == "ZZFeatureMap":
+    # applying PCA for PQC-style embeddings
+    if cfg.embedding in ["ZZFeatureMap", "AngleEncoding", "RMP"]:
         train_loader, validation_loader, test_loader = transform_to_pca_loader(
             train_loader,
             validation_loader,

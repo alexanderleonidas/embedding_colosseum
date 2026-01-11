@@ -13,7 +13,7 @@ device = (
 
 class ZZFeatureMapEmbedding:
     def __init__(self, num_features=6):
-        # PQCs/Feature maps require preprocessing in the form of dimensionlaity reduction, as they dont have a clever approahc like QIR, but pass
+        # PQCs/Feature maps require preprocessing in the form of dimensionality reduction, as they dont have an efficient approach like QIR, but pass        
         # thorugh and encode all the pixels, so either encoding 1 pixel per qubit, or one rotation per pixel on a few qubits, in any way the circuits
         # will be deep and likely not feasible to run
         # So this PQC is designed to take a reduced vector of featurs after preprocessing (likely tied to PCA always), and maps each feature to qubit
