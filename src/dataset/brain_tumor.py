@@ -1,4 +1,5 @@
 import os
+
 from PIL import Image
 from torch.utils.data import Dataset
 
@@ -25,7 +26,7 @@ class BRAINTUMOR(Dataset):
 def extract_brain_tumor_dataset(root):
     data_folder = os.path.join(root, "BRAINTUMOR")
     ct_directory = os.path.join(data_folder, "Brain Tumor CT scan Images")
-    mri_directory = os.path.join(data_folder, "Brain Tumor MRI Images")
+    mri_directory = os.path.join(data_folder, "Brain Tumor MRI images")
     classes = ["Healthy", "Tumor"]
 
     img_paths = []
