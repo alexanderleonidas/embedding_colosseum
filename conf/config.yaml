@@ -1,7 +1,5 @@
 defaults:
   - _self_
-  - model: default
-  - training: base
 
 # Logging config
   - override hydra/job_logging: custom
@@ -11,14 +9,22 @@ defaults:
 
 # Random seed
 seed: 0
-embedding: ZZFeatureMap
-# embedding: FRQI, NEQR, ZZFeatureMap, AngleEncoding, RMP
+embedding: RMP
+# embedding: FRQI, NEQR, ZZFeatureMap, AngleEncoding, RMP, OQIM
 
 dataset:
-  name: stl10
+  name: mnist
   num_classes: 2
   binary: True
 
+training:
+  epochs: 1
+  batch_size: 100
+  image_width: 4 # Number of pixels on one side of the square image
+  lr: 0.05
+
+model:
+  num_layers: 3
 
 # Extra configuration for logging
 hydra:
