@@ -75,9 +75,15 @@ class VariationalClassifier:
         self.circuit = circuit
         pass
 
-    def classify(self, X):
-        """Classifies a batch of inputs X"""
-        return torch.stack(self.circuit(self.weights, X), dim=1) + self.bias
+    def classify(self, X, batch_processing=True):
+        """Classifies a batch of inputs X. Expectes the first dimension to be the batch size!"""
+        if batch_processing:
+            return torch.stack(self.circuit(self.weights, X), dim=1) + self.bias
+        else:
+            return torch.stack(
+                [torch.stack(self.circuit(self.weights, x)) + self.bias for x in X],
+                dim=0,
+            )
 
     def save_svg(self, path: str = "circuit.svg", decimals: int = 2, level="top"):
         """Prints the circuit to a svg using qml.draw_mpl

@@ -10,11 +10,12 @@ from rich import print, progress
 from tqdm import tqdm
 
 from src.dataset.DataManager import DataManager
+from src.embeddings.AngleEncoding import AngleEncodingEmbedding
 from src.embeddings.FRQI_PennyLane import FRQI
 from src.embeddings.NEQR_PennyLane import NEQR
-from src.embeddings.ZZFeatureMap import ZZFeatureMapEmbedding
-from src.embeddings.AngleEncoding import AngleEncodingEmbedding
+from src.embeddings.OQIM_PennyLane import OQIM
 from src.embeddings.RMP_Prototype import RMPEmbedding
+from src.embeddings.ZZFeatureMap import ZZFeatureMapEmbedding
 from src.model.VariationalClassifier import VariationalClassifier
 from src.preprocessing.pca import transform_to_pca_loader
 from src.utils.save_training_progress import TrainingLogger
@@ -59,6 +60,8 @@ def run_classifier(cfg):
         embedding = AngleEncodingEmbedding(num_features=6)
     elif cfg.embedding == "RMP":
         embedding = RMPEmbedding(num_features=6, alpha=0.5)
+    elif cfg.embedding == "OQIM":
+        embedding = OQIM(num_pixels=cfg.training.image_width * cfg.training.image_width)
     else:
         raise ValueError("Unknown embedding method")
 
@@ -117,7 +120,12 @@ def run_classifier(cfg):
                 y = y.to(device)
 
                 optimizer.zero_grad()
-                pred = model.classify(X)
+                if cfg.embedding in ["NEQR", "OQIM"]:
+                    # Batch processing is not supported by these embeddings
+                    pred = model.classify(X, batch_processing=False)
+                else:
+                    pred = model.classify(X)
+
                 loss = loss_fn(pred, y.long())
 
                 loss.backward()

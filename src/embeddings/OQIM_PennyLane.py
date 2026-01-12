@@ -1,7 +1,8 @@
 import math
+
 import pennylane as qml
-from pennylane import numpy as np
 import torch
+from pennylane import numpy as np
 
 device = (
     torch.device("cuda")
@@ -94,8 +95,12 @@ class OQIM:
                     if bit == "0":
                         qml.PauliX(wires=wire)
 
-                qml.ctrl(qml.RY, control=rank_wires)(2 * angles_color[k], wires=color_wire)
-                qml.ctrl(qml.RY, control=rank_wires)(2 * angles_coord[k], wires=coord_wire)
+                qml.ctrl(qml.RY, control=rank_wires)(
+                    2 * angles_color[k], wires=color_wire
+                )
+                qml.ctrl(qml.RY, control=rank_wires)(
+                    2 * angles_coord[k], wires=coord_wire
+                )
 
                 # unflip
                 for wire, bit in zip(rank_wires, bits):
@@ -121,14 +126,24 @@ class OQIM:
         sorted_pixels, _ = torch.sort(pixels)
 
         # intensity -> angle
-        pi2 = torch.tensor(math.pi / 2, dtype=sorted_pixels.dtype, device=sorted_pixels.device)
+        pi2 = torch.tensor(
+            math.pi / 2, dtype=sorted_pixels.dtype, device=sorted_pixels.device
+        )
         angles_color = sorted_pixels * pi2
 
         # rank position -> angle
         if self.num_pixels > 1:
-            ranks = torch.linspace(0.0, 1.0, steps=self.num_pixels, device=sorted_pixels.device, dtype=sorted_pixels.dtype)
+            ranks = torch.linspace(
+                0.0,
+                1.0,
+                steps=self.num_pixels,
+                device=sorted_pixels.device,
+                dtype=sorted_pixels.dtype,
+            )
         else:
-            ranks = torch.tensor([0.0], device=sorted_pixels.device, dtype=sorted_pixels.dtype)
+            ranks = torch.tensor(
+                [0.0], device=sorted_pixels.device, dtype=sorted_pixels.dtype
+            )
         angles_coord = ranks * pi2
 
         color_wire = 0
