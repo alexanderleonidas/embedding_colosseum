@@ -34,7 +34,9 @@ class FRQI:
 
         pixels = pixels.to(device).float()
 
-        # the DataManager should handle normalization in resize_images, but just in case it is not always so
+        # the DataManager should handle normalization in resize_images - outdated due to changes
+        # now changed DataManager's PILToTensor to ToTensor to handle normalization for all embeddings automatically
+        # some embeddings expect normalized inputs (NAQSS), others like FRQI work also without normalizing, but accuracy is much better with
         # if pixels.max() > 1.5:
         #     pixels = np.clip(pixels, 0, 255)
         #     pixels = pixels / 255.0

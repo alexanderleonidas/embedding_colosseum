@@ -9,8 +9,8 @@ defaults:
 
 # Random seed
 seed: 0
-embedding: RMP
-# embedding: FRQI, NEQR, ZZFeatureMap, AngleEncoding, RMP, OQIM
+embedding: NAQSS
+# embedding: FRQI, NEQR, OQIM, NAQSS, ZZFeatureMap, AngleEncoding, RMP
 
 dataset:
   name: mnist

@@ -36,14 +36,14 @@ class DataManager:
         self.batch_size = batch_size
         self.generator = torch.Generator().manual_seed(seed)
         if transform is None:
-            transform = transforms.Compose([transforms.Resize((pixel_size, pixel_size)), transforms.PILToTensor()])
+            transform = transforms.Compose([transforms.Resize((pixel_size, pixel_size)), transforms.ToTensor()])
         elif transform == "greyscale":
             transform = transforms.Compose(
-                [transforms.Grayscale(), transforms.Resize((pixel_size, pixel_size)), transforms.PILToTensor()]
+                [transforms.Grayscale(), transforms.Resize((pixel_size, pixel_size)), transforms.ToTensor()]
             )
         elif transform == "normalise":
             transform = transforms.Compose(
-                [transforms.ToTensor(), transforms.Resize((pixel_size, pixel_size)), transforms.PILToTensor()]
+                [transforms.ToTensor(), transforms.Resize((pixel_size, pixel_size)), transforms.ToTensor()]
             )
         else:
             raise ValueError(

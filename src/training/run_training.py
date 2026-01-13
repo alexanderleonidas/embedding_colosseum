@@ -14,6 +14,7 @@ from src.embeddings.AngleEncoding import AngleEncodingEmbedding
 from src.embeddings.FRQI_PennyLane import FRQI
 from src.embeddings.NEQR_PennyLane import NEQR
 from src.embeddings.OQIM_PennyLane import OQIM
+from src.embeddings.NAQSS import NAQSS
 from src.embeddings.RMP_Prototype import RMPEmbedding
 from src.embeddings.ZZFeatureMap import ZZFeatureMapEmbedding
 from src.model.VariationalClassifier import VariationalClassifier
@@ -62,6 +63,8 @@ def run_classifier(cfg):
         embedding = RMPEmbedding(num_features=6, alpha=0.5)
     elif cfg.embedding == "OQIM":
         embedding = OQIM(num_pixels=cfg.training.image_width * cfg.training.image_width)
+    elif cfg.embedding == "NAQSS":
+        embedding = NAQSS(num_pixels=cfg.training.image_width * cfg.training.image_width)
     else:
         raise ValueError("Unknown embedding method")
 
@@ -120,7 +123,7 @@ def run_classifier(cfg):
                 y = y.to(device)
 
                 optimizer.zero_grad()
-                if cfg.embedding in ["NEQR", "OQIM"]:
+                if cfg.embedding in ["NEQR", "OQIM", "NAQSS"]:
                     # Batch processing is not supported by these embeddings
                     pred = model.classify(X, batch_processing=False)
                 else:
@@ -168,7 +171,12 @@ def run_classifier(cfg):
                     X = X.to(device)
                     y = y.to(device)
 
-                    pred = model.classify(X)
+                    # batch processing not supported by these embeddings, conditional also for validation loop
+                    if cfg.embedding in ["NEQR", "OQIM", "NAQSS"]: 
+                        pred = model.classify(X, batch_processing=False)
+                    else:
+                        pred = model.classify(X)
+
                     val_loss += loss_fn(pred, y.long()).item()
                     val_acc += accuracy(logits=pred, labels=y)
                     p.update(task, advance=1)
