@@ -52,7 +52,6 @@ class DataManager:
             pad = cfg.dataset.orig_width - cfg.training.image_width
             pad //= 2
             tf_list += [transforms.ToTensor(), transforms.Pad(pad)]
-            print("USING PADDING")
         else:
             tf_list.append(transforms.Resize((pixel_size, pixel_size)))
         if transform is None or transform == "None":
