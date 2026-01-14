@@ -73,6 +73,7 @@ def run_classifier(cfg):
         seed=cfg.seed,
         dataset=cfg.dataset.name,
         pixel_size=cfg.training.image_width,  # pixel size set above
+        transform=cfg.image_preprocessing,
         make_binary=cfg.dataset.binary,
     )
     train_loader, validation_loader, test_loader = dm.get_loaders(

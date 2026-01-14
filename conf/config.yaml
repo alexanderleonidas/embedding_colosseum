@@ -9,8 +9,12 @@ defaults:
 
 # Random seed
 seed: 0
-embedding: NAQSS
+embedding: NEQR
 # embedding: FRQI, NEQR, OQIM, NAQSS, ZZFeatureMap, AngleEncoding, RMP
+
+# Image preprocessing technique for the PxE analysis, used as input for all embedings for the evaluation
+image_preprocessing: None
+# None, GaussianBlur
 
 dataset:
   name: mnist
