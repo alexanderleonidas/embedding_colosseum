@@ -15,4 +15,4 @@ hydra:
       training.batch_size: 100
 
 # Execute with:
-# uv run main.py +experiment=filename ++dataset=cifar10 -m
+# uv run main.py +experiment=filename
