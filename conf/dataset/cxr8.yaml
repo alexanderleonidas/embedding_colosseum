@@ -1,0 +1,7 @@
+# https://huggingface.co/datasets/alkzar90/NIH-Chest-X-ray-dataset
+defaults:
+  - base
+
+name: cxr8
+image_width_sweep: "2,4,8,16,32,64,128,256,512"
+# Original Size: 1024 x 1024
