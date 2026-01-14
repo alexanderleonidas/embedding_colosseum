@@ -53,6 +53,7 @@ def run_classifier(cfg):
         raise ValueError("Unknown embedding method")
 
     dm = DataManager(
+        cfg=cfg,
         batch_size=cfg.training.batch_size,
         seed=cfg.seed,
         dataset=cfg.dataset.name,

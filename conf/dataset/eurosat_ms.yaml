@@ -4,3 +4,4 @@ defaults:
 
 name: eurosat_ms
 image_width_sweep: "64"
+orig_width: 64

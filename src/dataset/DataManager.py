@@ -1,7 +1,7 @@
 import os
 
 import torch
-from torch.utils.data import DataLoader, random_split, ConcatDataset, Dataset
+from torch.utils.data import ConcatDataset, DataLoader, Dataset, random_split
 from torchvision import datasets, transforms
 
 from src.dataset.brain_tumor import BRAINTUMOR, extract_brain_tumor_dataset
@@ -10,16 +10,22 @@ from src.dataset.eurosat import EUROSAT, extract_eurosat_dataset
 from src.preprocessing.denoising_filters import BilateralFilter, MedianBlur
 from src.preprocessing.homomorphic_filter import HomomorphicFilter
 
-
 try:
     import ssl
+
     import certifi
 
-    ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
+    ssl._create_default_https_context = lambda: ssl.create_default_context(
+        cafile=certifi.where()
+    )
 except Exception as _:
     # If certifi isn't available or something fails, keep default context and warn
     import warnings
-    warnings.warn("Could not set certifi SSL context; HTTPS downloads may fail. Install certifi with: pip install certifi")
+
+    warnings.warn(
+        "Could not set certifi SSL context; HTTPS downloads may fail. Install certifi with: pip install certifi"
+    )
+
 
 class DataManager:
     """
@@ -28,6 +34,7 @@ class DataManager:
 
     def __init__(
         self,
+        cfg: dict,
         batch_size: int,
         seed: int,
         pixel_size: int,
@@ -35,56 +42,53 @@ class DataManager:
         transform=None,
         make_binary=False,
     ):
+        self.cfg = cfg
         self.make_binary = make_binary
         self.batch_size = batch_size
         self.generator = torch.Generator().manual_seed(seed)
+        tf_list = []
+        if cfg.dataset.orig_width - cfg.training.image_width < 0:
+            # Pad as the target size is bigger than original
+            pad = cfg.dataset.orig_width - cfg.training.image_width
+            pad //= 2
+            tf_list += [transforms.ToTensor(), transforms.Pad(pad)]
+            print("USING PADDING")
+        else:
+            tf_list.append(transforms.Resize((pixel_size, pixel_size)))
         if transform is None or transform == "None":
-            transform = transforms.Compose(
-                [transforms.Resize((pixel_size, pixel_size)), transforms.ToTensor()]
-            )
+            pass
         elif transform == "GaussianBlur":
-            transform = transforms.Compose(
-                [transforms.Resize((pixel_size, pixel_size)), transforms.GaussianBlur(kernel_size=3, sigma=1.0), transforms.ToTensor()]
-            )
+            tf_list += [
+                transforms.GaussianBlur(kernel_size=3, sigma=1.0),
+            ]
         elif transform == "ContrastScaling":
-            transform = transforms.Compose([
-                transforms.Resize((pixel_size, pixel_size)),
-                transforms.ToTensor(),
-                lambda x: self._contrast_scale_image_preproc(x)    # contrast scaling transformation as lamba expression in Compose
-            ])
+            tf_list += [
+                lambda x: self._contrast_scale_image_preproc(
+                    x
+                ),  # contrast scaling transformation as lamba expression in Compose
+            ]
+
         elif transform == "MedianBlur":
-            transform = transforms.Compose(
-                [
-                    transforms.Resize((pixel_size, pixel_size)),
-                    transforms.ToTensor(),
-                    MedianBlur(kernel_size=3),
-                ]
-            )
+            tf_list += [
+                MedianBlur(kernel_size=3),
+            ]
         elif transform == "BilateralFilter":
-            transform = transforms.Compose(
-                [
-                    transforms.Resize((pixel_size, pixel_size)),
-                    transforms.ToTensor(),
-                    BilateralFilter(d=9, sigma_color=75, sigma_space=75),
-                ]
-            )
+            tf_list += [
+                BilateralFilter(d=9, sigma_color=75, sigma_space=75),
+            ]
         elif transform == "HomomorphicFilter":
-            transform = transforms.Compose(
-                [
-                    transforms.Resize((pixel_size, pixel_size)),
-                    transforms.Grayscale(num_output_channels=1),
-                    transforms.ToTensor(),
-                    HomomorphicFilter(a=0.5, b=1.5, cutoff=32),
-                ]
-            )
+            tf_list += [
+                transforms.Grayscale(num_output_channels=1),
+                HomomorphicFilter(a=0.5, b=1.5, cutoff=32),
+            ]
         else:
             raise ValueError("Unsupported transform (image preprocessing) method.\n")
-        
-        self.transform = transform
+
+        self.transform = transforms.Compose(tf_list)
         self.root = self._get_root()
         self._data = self._get_dataset(dataset)
 
-    def _contrast_scale_image_preproc(self, x, factor=1.5):  
+    def _contrast_scale_image_preproc(self, x, factor=1.5):
         mean = x.mean()
         return torch.clamp(mean + factor * (x - mean), 0.0, 1.0)
 
@@ -151,7 +155,7 @@ class DataManager:
         if self.make_binary and dataset != "brain_tumor":
             class_a = 0  # CHOOSE HERE classes for binary classification
             class_b = 1
-            all_data = self.make_binary_dataset(all_data,class_a,class_b)
+            all_data = self.make_binary_dataset(all_data, class_a, class_b)
 
         return all_data
 
@@ -164,7 +168,8 @@ class DataManager:
             self.pos = pos
 
             self.indices = [
-                i for i in range(len(dataset))
+                i
+                for i in range(len(dataset))
                 if dataset[i][1] == class_a or dataset[i][1] == class_b
             ]
 
@@ -176,16 +181,27 @@ class DataManager:
             y = self.neg if y == self.class_a else self.pos
             return x, y
 
-    def make_binary_dataset(self, dataset, class_a, class_b, negative_label=0, positive_label=1):
+    def make_binary_dataset(
+        self, dataset, class_a, class_b, negative_label=0, positive_label=1
+    ):
         """
         Convert ANY dataset (including ConcatDataset) into a binary dataset.
         Labels are mapped to {negative_label, positive_label}.
         """
 
         if isinstance(dataset, ConcatDataset):
-            return ConcatDataset([self.make_binary_dataset(ds, class_a, class_b, negative_label, positive_label) for ds in dataset.datasets])
+            return ConcatDataset(
+                [
+                    self.make_binary_dataset(
+                        ds, class_a, class_b, negative_label, positive_label
+                    )
+                    for ds in dataset.datasets
+                ]
+            )
 
-        return self._BinaryDataset(dataset, class_a, class_b, negative_label, positive_label)
+        return self._BinaryDataset(
+            dataset, class_a, class_b, negative_label, positive_label
+        )
 
     def get_loaders(self, train_split: float, val_split: float, test_split: float):
         """
@@ -235,12 +251,17 @@ class DataManager:
         )
         return train_loader, val_loader, test_loader
 
+
 # Example usage
 if __name__ == "__main__":
-    dm = DataManager(batch_size=100, seed=42, dataset="cxr8", pixel_size=64, make_binary=False)
+    dm = DataManager(
+        batch_size=100, seed=42, dataset="cxr8", pixel_size=64, make_binary=False
+    )
     print(dm.root)
     train, val, test = dm.get_loaders(0.8, 0.1, 0.1)
-    print(f"Train loader length: {len(train)}, Val loader length: {len(val)}, Test loader length: {len(test)}")
+    print(
+        f"Train loader length: {len(train)}, Val loader length: {len(val)}, Test loader length: {len(test)}"
+    )
     # img, label = train.dataset[0]
     # print(img.size)
     # print(label)

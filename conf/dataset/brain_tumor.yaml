@@ -4,4 +4,5 @@ defaults:
 
 name: brain_tumor
 image_width_sweep: "2,4,8,16,32,64,128,256,512"
+orig_width: 640
 # Original Size: 640 x 640

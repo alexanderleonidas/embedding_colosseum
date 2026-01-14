@@ -4,3 +4,4 @@ defaults:
 name: cifar10
 image_width_sweep: "32"
 # Original Size: 3 x 32 x 32
+orig_width: 32
