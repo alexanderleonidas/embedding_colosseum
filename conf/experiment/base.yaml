@@ -1,0 +1,18 @@
+# @package _global_
+
+# Define the parameters to sweep over
+hydra:
+  launcher:
+    n_jobs: 1 # -1 to use all CPU cores
+  mode: MULTIRUN
+  sweeper:
+    params:
+      dataset: mnist, fashion, eurosat_rgb, eurosat_ms, cxr8, cifar10, brain_tumor, st110
+      seed: 0, 1
+      image_preprocessing: None, GaussianBlur, ContrastScaling, MedianBlur, BilateralFilter, HomomorphicFilter
+      embedding: FRQI, NEQR, OQIM, NAQSS, ZZFeatureMap, AngleEncoding, RMP
+      training.image_width: ${dataset.image_width_sweep}
+      training.batch_size: 100
+
+# Execute with:
+# uv run main.py +experiment=filename ++dataset=cifar10 -m

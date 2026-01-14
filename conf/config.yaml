@@ -1,7 +1,6 @@
 defaults:
   - _self_
   - dataset: cifar10
-
 # Logging config
   - override hydra/job_logging: custom
   - override hydra/hydra_logging: default
@@ -30,5 +29,3 @@ model:
 hydra:
   searchpath:
     - file://conf/hydra/job_logging/
-  launcher:
-    n_jobs: 1 # -1 to use all CPU cores
