@@ -35,19 +35,30 @@ class DataManager:
         self.make_binary = make_binary
         self.batch_size = batch_size
         self.generator = torch.Generator().manual_seed(seed)
-        if transform is None:
-            transform = transforms.Compose([transforms.Resize((pixel_size, pixel_size)), transforms.ToTensor()])
+        if transform is None or transform == "None":
+            transform = transforms.Compose(
+                [transforms.Resize((pixel_size, pixel_size)), transforms.ToTensor()]
+            )
         elif transform == "GaussianBlur":
             transform = transforms.Compose(
                 [transforms.Resize((pixel_size, pixel_size)), transforms.GaussianBlur(kernel_size=3, sigma=1.0), transforms.ToTensor()]
             )
+        elif transform == "ContrastScaling":
+            transform = transforms.Compose([
+                transforms.Resize((pixel_size, pixel_size)),
+                transforms.ToTensor(),
+                lambda x: self._contrast_scale_image_preproc(x)    # contrast scaling transformation as lamba expression in Compose
+            ])
         else:
-            raise ValueError(
-                "Unsupported transform. Choose 'normalise' or 'greyscale'."
-            )
+            raise ValueError("Unsupported transform (image preprocessing) method.\n")
+        
         self.transform = transform
         self.root = self._get_root()
         self._data = self._get_dataset(dataset)
+
+    def _contrast_scale_image_preproc(self, x, factor=1.5):  
+        mean = x.mean()
+        return torch.clamp(mean + factor * (x - mean), 0.0, 1.0)
 
     def _get_root(self):
         root = os.getcwd()
@@ -110,7 +121,7 @@ class DataManager:
             )
 
         if self.make_binary and dataset != "brain_tumor":
-            class_a = 0  # <-- choose here
+            class_a = 0  # CHOOSE HERE classes for binary classification
             class_b = 1
             all_data = self.make_binary_dataset(all_data,class_a,class_b)
 
