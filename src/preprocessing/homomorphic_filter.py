@@ -5,17 +5,25 @@ class HomomorphicFilter:
     """
     A PyTorch transform to apply a homomorphic filter to an image.
 
-    Homomorphic filtering is a technique used for image enhancement that corrects
-    non-uniform illumination and enhances contrast. It operates in the frequency
-    domain to separate illumination (low-frequency) and reflectance (high-frequency)
-    components.
+    This filter corrects non-uniform illumination and enhances contrast. It is based
+    on the image model: I(x,y) = L(x,y) * R(x,y), where I is the image, L is the
+    slowly varying illumination (low-frequency), and R is the reflectance containing
+    the object details (high-frequency).
+
+    The process involves:
+    1. Taking the log to transform the multiplicative model into an additive one:
+       log(I) = log(L) + log(R).
+    2. Moving to the frequency domain using FFT.
+    3. Applying a high-pass filter to suppress the illumination (L) and enhance
+       the reflectance (R).
+    4. Returning to the spatial domain with an inverse FFT and reversing the log.
 
     Args:
-        a (float): Offset for the filter gain. Controls the contribution of the
-                   high-pass filtered component. Default is 0.5.
-        b (float): Slope for the filter gain. Controls the sharpness of the
-                   transition. Default is 1.5.
-        cutoff (int): Cutoff frequency for the high-pass filter.
+        a (float): Low-frequency gain. Controls the attenuation of illumination.
+                   Should be < 1. Default is 0.5.
+        b (float): High-frequency gain. Controls the enhancement of reflectance.
+                   Should be > 1. Default is 1.5.
+        cutoff (int): Cutoff frequency for the Gaussian high-pass filter.
     """
 
     def __init__(self, a: float = 0.5, b: float = 1.5, cutoff: int = 32):
@@ -42,7 +50,8 @@ class HomomorphicFilter:
         # 1. Log transform the image (add epsilon to avoid log(0))
         img_log = torch.log1p(img_tensor)
 
-        # 2. To frequency domain via Fast Fourier Transform
+        # --- Step 2: Fourier Transform ---
+        # Move to the frequency domain and shift the zero-frequency component to the center.
         img_fft_shifted = torch.fft.fftshift(torch.fft.fft2(img_log))
 
         # 3. Create a Gaussian high-pass filter
@@ -54,6 +63,8 @@ class HomomorphicFilter:
         )
         D_sq = u**2 + v**2
         hpf = 1.0 - torch.exp(-D_sq / (2 * self.cutoff**2))
+        # Apply gain factors to create the final homomorphic filter.
+        # This attenuates low frequencies (gain 'a') and amplifies high frequencies (gain 'b').
         hpf_gain = (self.b - self.a) * hpf + self.a
 
         # 4. Apply filter and inverse FFT
@@ -62,5 +73,6 @@ class HomomorphicFilter:
 
         # 5. Reverse log transform and normalize output
         filtered_img = torch.expm1(filtered_log)
+        # Normalize the output to be in the range [0, 1] for a valid image representation.
         return (filtered_img - filtered_img.min()) / (filtered_img.max() - filtered_img.min() + 1e-8)
 

@@ -7,6 +7,9 @@ from torchvision import datasets, transforms
 from src.dataset.brain_tumor import BRAINTUMOR, extract_brain_tumor_dataset
 from src.dataset.cxr8 import CXR8, extract_chest_xray_dataset
 from src.dataset.eurosat import EUROSAT, extract_eurosat_dataset
+from src.preprocessing.denoising_filters import BilateralFilter, MedianBlur
+from src.preprocessing.homomorphic_filter import HomomorphicFilter
+
 
 try:
     import ssl
@@ -49,6 +52,31 @@ class DataManager:
                 transforms.ToTensor(),
                 lambda x: self._contrast_scale_image_preproc(x)    # contrast scaling transformation as lamba expression in Compose
             ])
+        elif transform == "MedianBlur":
+            transform = transforms.Compose(
+                [
+                    transforms.Resize((pixel_size, pixel_size)),
+                    transforms.ToTensor(),
+                    MedianBlur(kernel_size=3),
+                ]
+            )
+        elif transform == "BilateralFilter":
+            transform = transforms.Compose(
+                [
+                    transforms.Resize((pixel_size, pixel_size)),
+                    transforms.ToTensor(),
+                    BilateralFilter(d=9, sigma_color=75, sigma_space=75),
+                ]
+            )
+        elif transform == "HomomorphicFilter":
+            transform = transforms.Compose(
+                [
+                    transforms.Resize((pixel_size, pixel_size)),
+                    transforms.Grayscale(num_output_channels=1),
+                    transforms.ToTensor(),
+                    HomomorphicFilter(a=0.5, b=1.5, cutoff=32),
+                ]
+            )
         else:
             raise ValueError("Unsupported transform (image preprocessing) method.\n")
         
