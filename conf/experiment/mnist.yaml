@@ -2,6 +2,7 @@
 
 # Override defaults for this specific experiment
 defaults:
+  - dataset: mnist
   - override /hydra/sweeper: basic
 
 # Define the parameters to sweep over
@@ -9,10 +10,10 @@ hydra:
   sweeper:
     params:
       seed: 0, 1
-      embedding: FRQI, ZZFeatureMap #, NEQR
-      training.image_width: 3, 4, 6, 8, 10
+      image_preprocessing: None #, GaussianBlur
+      embedding: FRQI, NEQR, OQIM, NAQSS, ZZFeatureMap, AngleEncoding, RMP
+      training.image_width: ${dataset.image_width_sweep}
       training.batch_size: 100
-      dataset.name: mnist
 
 # Execute with:
 # uv run main.py +experiment=mnist -m

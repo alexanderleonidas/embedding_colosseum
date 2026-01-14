@@ -1,5 +1,6 @@
 defaults:
   - _self_
+  - dataset: cifar10
 
 # Logging config
   - override hydra/job_logging: custom
@@ -16,15 +17,10 @@ embedding: OQIM
 image_preprocessing: None
 # None, GaussianBlur, ContrastScaling
 
-dataset:
-  name: mnist
-  num_classes: 2
-  binary: True
-
 training:
   epochs: 1
   batch_size: 100
-  image_width: 4 # Number of pixels on one side of the square image
+  image_width: 2 # Number of pixels on one side of the square image
   lr: 0.05
 
 model:

@@ -1,0 +1,7 @@
+# https://www.kaggle.com/datasets/murtozalikhon/brain-tumor-multimodal-image-ct-and-mri?resource=download
+defaults:
+  - base
+
+name: brain_tumor
+image_width_sweep: "2,4,8,16,32,64,128,256,512"
+# Original Size: 640 x 640

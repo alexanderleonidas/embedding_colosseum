@@ -1,0 +1,6 @@
+# https://zenodo.org/records/7711810#.ZAm3k-zMKEA
+defaults:
+  - base
+
+name: eurosat_ms
+image_width_sweep: "64"

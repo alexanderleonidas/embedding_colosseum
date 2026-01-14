@@ -1,0 +1,7 @@
+defaults:
+  - base
+
+name: st110
+image_width_sweep: "2,4,8,16,32,64,128"
+# 96 x 96
+
