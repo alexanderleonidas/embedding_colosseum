@@ -59,13 +59,13 @@ def extract_brain_tumor_dataset(root):
     # print(f"No Tumor (no): {labels.count(0)} images ({labels.count(0) / len(labels) * 100:.1f}%)")
     return img_paths, labels
 
-
+# Example usage
 if __name__ == "__main__":
-    img_paths, labels = extract_brain_tumor_dataset()
+    img_paths, labels = extract_brain_tumor_dataset(root="./data")
     print(len(img_paths))
     print(img_paths[:5])
     print(labels[:5])
     img = Image.open(img_paths[100])
-    # img = transforms.ToPILImage()(img)
     print(img.size)
+    # img = transforms.ToPILImage()(img)
     # img.show()

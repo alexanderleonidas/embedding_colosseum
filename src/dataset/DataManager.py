@@ -34,26 +34,27 @@ class DataManager:
 
     def __init__(
         self,
-        cfg: dict,
         batch_size: int,
         seed: int,
         pixel_size: int,
         dataset="mnist",
         transform=None,
         make_binary=False,
+        cfg: dict=None,
     ):
         self.cfg = cfg
         self.make_binary = make_binary
         self.batch_size = batch_size
         self.generator = torch.Generator().manual_seed(seed)
         tf_list = []
-        if cfg.dataset.orig_width - cfg.training.image_width < 0:
-            # Pad as the target size is bigger than original
-            pad = cfg.dataset.orig_width - cfg.training.image_width
-            pad //= 2
-            tf_list += [transforms.ToTensor(), transforms.Pad(pad)]
+        if cfg is not None:
+            if cfg.dataset.orig_width - cfg.training.image_width < 0:
+                # Pad as the target size is bigger than original
+                pad = cfg.dataset.orig_width - cfg.training.image_width
+                pad //= 2
+                tf_list += [transforms.ToTensor(), transforms.Pad(pad)]
         else:
-            tf_list.append(transforms.Resize((pixel_size, pixel_size)))
+            tf_list += [transforms.Resize((pixel_size, pixel_size)), transforms.ToTensor()]
         if transform is None or transform == "None":
             pass
         elif transform == "GaussianBlur":

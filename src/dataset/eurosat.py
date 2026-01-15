@@ -3,7 +3,7 @@ import os
 from PIL import Image
 from torch.utils.data import Dataset
 
-# The default size of the pictures in this dataset is 64x64 pixels
+# The default size of the pictures in this dataset is 64x64 pixels with 3 color channels (RGB) or 13 channels (GeoTIFF).
 
 
 class EUROSAT(Dataset):
@@ -16,7 +16,7 @@ class EUROSAT(Dataset):
         return len(self.labels)
 
     def __getitem__(self, idx):
-        img = Image.open(self.img_path[idx]).convert("RGB")
+        img = Image.open(self.img_path[idx])
         label = self.labels[idx]
         if self.transform:
             img = self.transform(img)
@@ -63,7 +63,7 @@ def extract_eurosat_dataset(root, rgb=True):
                 img_files = [
                     f
                     for f in os.listdir(class_path)
-                    if f.lower().endswith((".jpg", ".jpeg"))
+                    if f.lower().endswith((".jpg", ".jpeg", ".tif"))
                 ]
                 for img_name in img_files:
                     img_paths.append(os.path.join(class_path, img_name))
@@ -79,6 +79,6 @@ def extract_eurosat_dataset(root, rgb=True):
 
 
 if __name__ == "__main__":
-    img_paths, labels = extract_eurosat_dataset()
+    img_paths, labels = extract_eurosat_dataset(root="./data", rgb=False)
     print(img_paths[:5])
     print(labels[:5])

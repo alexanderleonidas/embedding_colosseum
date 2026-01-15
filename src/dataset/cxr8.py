@@ -79,7 +79,7 @@ def extract_chest_xray_dataset(root):
 
 
 if __name__ == "__main__":
-    img_paths, labels = extract_chest_xray_dataset()
+    img_paths, labels = extract_chest_xray_dataset(root="./data")
     print("Total images: ", len(img_paths))
     print(img_paths[:5])
     print(labels[:5])
