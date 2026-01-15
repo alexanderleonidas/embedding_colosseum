@@ -16,7 +16,7 @@ class BRAINTUMOR(Dataset):
         return len(self.labels)
 
     def __getitem__(self, idx):
-        img = Image.open(self.img_path[idx]).convert("RGB")
+        img = Image.open(self.img_path[idx]).convert("L")
         label = self.labels[idx]
         if self.transform:
             img = self.transform(img)
