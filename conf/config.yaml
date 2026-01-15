@@ -19,7 +19,7 @@ image_preprocessing: None
 training:
   epochs: 1
   batch_size: 100
-  image_width: 2 # Number of pixels on one side of the square image
+  image_width: 32 # Number of pixels on one side of the square image
   lr: 0.05
 
 model:
