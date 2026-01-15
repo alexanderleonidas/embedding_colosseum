@@ -33,19 +33,19 @@ def run_classifier(cfg):
     np.random.seed(cfg.seed)
     torch.random.manual_seed(cfg.seed)
 
-    if cfg.embedding == "FRQI":
+    if cfg.embedding.name == "FRQI":
         embedding = FRQI(num_pixels=cfg.training.image_width * cfg.training.image_width)
-    elif cfg.embedding == "NEQR":
+    elif cfg.embedding.name == "NEQR":
         embedding = NEQR(num_pixels=cfg.training.image_width * cfg.training.image_width)
-    elif cfg.embedding == "ZZFeatureMap":
+    elif cfg.embedding.name == "ZZFeatureMap":
         embedding = ZZFeatureMapEmbedding(num_features=6)
-    elif cfg.embedding == "AngleEncoding":
+    elif cfg.embedding.name == "AngleEncoding":
         embedding = AngleEncodingEmbedding(num_features=6)
-    elif cfg.embedding == "RMP":
+    elif cfg.embedding.name == "RMP":
         embedding = RMPEmbedding(num_features=6, alpha=0.5)
-    elif cfg.embedding == "OQIM":
+    elif cfg.embedding.name == "OQIM":
         embedding = OQIM(num_pixels=cfg.training.image_width * cfg.training.image_width)
-    elif cfg.embedding == "NAQSS":
+    elif cfg.embedding.name == "NAQSS":
         embedding = NAQSS(
             num_pixels=cfg.training.image_width * cfg.training.image_width
         )
@@ -110,7 +110,7 @@ def run_classifier(cfg):
         with progress.Progress() as p:
             task = p.add_task(
                 f"[yellow]Training Epoch {epoch + 1}/{cfg.training.epochs}..."
-                + f"(Img: {cfg.training.image_width}, Emb: {cfg.embedding})",
+                + f"(Img: {cfg.training.image_width}, Emb: {cfg.embedding.name})",
                 total=len(train_loader),
             )
             for batch, (X, y) in enumerate(train_loader):
@@ -147,7 +147,7 @@ def run_classifier(cfg):
             with progress.Progress() as p:
                 task = p.add_task(
                     f"[yellow]Validation Epoch {epoch + 1}/{cfg.training.epochs}..."
-                    + f"(Img: {cfg.training.image_width}, Emb: {cfg.embedding})",
+                    + f"(Img: {cfg.training.image_width}, Emb: {cfg.embedding.name})",
                     total=len(validation_loader),
                 )
                 for X, y in validation_loader:

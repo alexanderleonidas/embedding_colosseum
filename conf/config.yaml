@@ -1,6 +1,8 @@
 defaults:
   - _self_
   - dataset: eurosat_ms
+  - embedding: NEQR
+# embedding: FRQI, NEQR, OQIM, NAQSS, ZZFeatureMap, AngleEncoding, RMP
 # Logging config
   - override hydra/job_logging: custom
   - override hydra/hydra_logging: default
@@ -9,8 +11,7 @@ defaults:
 
 # Random seed
 seed: 0
-embedding: NEQR
-# embedding: FRQI, NEQR, OQIM, NAQSS, ZZFeatureMap, AngleEncoding, RMP
+
 
 # Image preprocessing technique for the PxE analysis, used as input for all embedings for the evaluation
 image_preprocessing: None

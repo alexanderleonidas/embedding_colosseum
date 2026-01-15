@@ -50,7 +50,7 @@ class TrainingLogger:
     # Procedure to save training data
     def log_training(self, pred, labels, loss, epoch, batch):
         acc = accuracy(pred, labels)
-        current = batch * self.cfg.training.batch_size
+        current = (batch + 1) * self.cfg.training.batch_size
         with open(self.csv_fp, "a") as f:
             f.write(f"{epoch},{batch},{loss},{acc},,\n")
 
