@@ -46,15 +46,15 @@ class DataManager:
         self.make_binary = make_binary
         self.batch_size = batch_size
         self.generator = torch.Generator().manual_seed(seed)
-        tf_list = []
+        tf_list = [transforms.ToTensor()]
         if cfg is not None:
             if cfg.dataset.orig_width - cfg.training.image_width < 0:
                 # Pad as the target size is bigger than original
                 pad = cfg.dataset.orig_width - cfg.training.image_width
                 pad //= 2
-                tf_list += [transforms.ToTensor(), transforms.Pad(pad)]
+                tf_list += [ transforms.Pad(pad)]
         else:
-            tf_list += [transforms.Resize((pixel_size, pixel_size)), transforms.ToTensor()]
+            tf_list += [transforms.Resize((pixel_size, pixel_size))]
         if transform is None or transform == "None":
             pass
         elif transform == "GaussianBlur":
