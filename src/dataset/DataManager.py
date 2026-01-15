@@ -1,7 +1,7 @@
 import os
 
 import torch
-from torch.utils.data import ConcatDataset, DataLoader, Dataset, random_split
+from torch.utils.data import ConcatDataset, DataLoader, Dataset, random_split, Subset
 from torchvision import datasets, transforms
 
 from src.dataset.brain_tumor import BRAINTUMOR, extract_brain_tumor_dataset
@@ -47,13 +47,14 @@ class DataManager:
         self.batch_size = batch_size
         self.generator = torch.Generator().manual_seed(seed)
         tf_list = []
-        if cfg.dataset.orig_width - cfg.training.image_width < 0:
-            # Pad as the target size is bigger than original
-            pad = cfg.dataset.orig_width - cfg.training.image_width
-            pad //= 2
-            tf_list += [transforms.ToTensor(), transforms.Pad(pad)]
+        if cfg is not None:
+            if cfg.dataset.orig_width - cfg.training.image_width < 0:
+                # Pad as the target size is bigger than original
+                pad = cfg.dataset.orig_width - cfg.training.image_width
+                pad //= 2
+                tf_list += [transforms.ToTensor(), transforms.Pad(pad)]
         else:
-            tf_list.append(transforms.Resize((pixel_size, pixel_size)))
+            tf_list += [transforms.Resize((pixel_size, pixel_size)), transforms.ToTensor()]
         if transform is None or transform == "None":
             pass
         elif transform == "GaussianBlur":
@@ -166,11 +167,29 @@ class DataManager:
             self.neg = neg
             self.pos = pos
 
-            self.indices = [
-                i
-                for i in range(len(dataset))
-                if dataset[i][1] == class_a or dataset[i][1] == class_b
-            ]
+            # Try to obtain labels without calling __getitem__ for every sample
+            labels = None
+            if hasattr(dataset, "targets"):
+                labels = dataset.targets
+            elif hasattr(dataset, "labels"):
+                labels = dataset.labels
+            elif hasattr(dataset, "y"):
+                labels = dataset.y
+
+            if labels is not None:
+                # Normalize to a Python list for fast iteration
+                try:
+                    labels = list(labels)
+                except Exception:
+                    labels = [int(l) for l in labels]
+                self.indices = [i for i, y in enumerate(labels) if y == class_a or y == class_b]
+            else:
+                # Fallback: single pass that calls __getitem__ (slower)
+                self.indices = [
+                    i
+                    for i in range(len(dataset))
+                    if (dataset[i][1] == class_a or dataset[i][1] == class_b)
+                ]
 
         def __len__(self):
             return len(self.indices)
@@ -180,14 +199,12 @@ class DataManager:
             y = self.neg if y == self.class_a else self.pos
             return x, y
 
-    def make_binary_dataset(
-        self, dataset, class_a, class_b, negative_label=0, positive_label=1
-    ):
+    def make_binary_dataset(self, dataset, class_a, class_b, negative_label=0, positive_label=1):
         """
         Convert ANY dataset (including ConcatDataset) into a binary dataset.
-        Labels are mapped to {negative_label, positive_label}.
+        Uses dataset attributes like `targets` or `labels` when available to avoid
+        expensive per-item __getitem__ calls.
         """
-
         if isinstance(dataset, ConcatDataset):
             return ConcatDataset(
                 [
@@ -201,6 +218,7 @@ class DataManager:
         return self._BinaryDataset(
             dataset, class_a, class_b, negative_label, positive_label
         )
+
 
     def get_loaders(self, train_split: float, val_split: float, test_split: float):
         """
@@ -254,7 +272,7 @@ class DataManager:
 # Example usage
 if __name__ == "__main__":
     dm = DataManager(
-        batch_size=100, seed=42, dataset="cxr8", pixel_size=64, make_binary=False
+        cfg=None, batch_size=100, seed=42, dataset="cxr8", pixel_size=640, make_binary=True
     )
     print(dm.root)
     train, val, test = dm.get_loaders(0.8, 0.1, 0.1)
