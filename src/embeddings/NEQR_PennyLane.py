@@ -102,14 +102,15 @@ class NEQR:
         pixels = X
 
         # Allow both single-sample (num_pixels,) and batched (B, num_pixels) inputs
-        if pixels.dim() == 1 or pixels.shape[0] == 1:
-            pixels = pixels.flatten()
-        else:
-            # keep batch dim, flatten remaining dims
-            raise NotImplementedError(
-                "NEQR state_preparation currently does not handle batches."
-            )
-            pixels = torch.flatten(pixels, start_dim=1)
+        #print(pixels.shape)
+        #if pixels.dim() == 1 or pixels.shape[0] == 1:
+        #    pixels = pixels.flatten()
+        #else:
+        #    # keep batch dim, flatten remaining dims
+        #    raise NotImplementedError(
+        #        "NEQR state_preparation currently does not handle batches."
+        #    )
+        pixels = torch.flatten(pixels)
 
         pixels = pixels.to(device).float()
 

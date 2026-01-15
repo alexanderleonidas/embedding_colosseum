@@ -1,4 +1,5 @@
 import os
+import logging
 
 import torch
 from torch.utils.data import ConcatDataset, DataLoader, Dataset, random_split
@@ -9,6 +10,8 @@ from src.dataset.cxr8 import CXR8, extract_chest_xray_dataset
 from src.dataset.eurosat import EUROSAT, extract_eurosat_dataset
 from src.preprocessing.denoising_filters import BilateralFilter, MedianBlur
 from src.preprocessing.homomorphic_filter import HomomorphicFilter
+
+log = logging.getLogger(__name__)
 
 try:
     import ssl
@@ -46,12 +49,12 @@ class DataManager:
         self.make_binary = make_binary
         self.batch_size = batch_size
         self.generator = torch.Generator().manual_seed(seed)
-        tf_list = []
+        tf_list = [transforms.ToTensor()]
         if cfg.dataset.orig_width - cfg.training.image_width < 0:
             # Pad as the target size is bigger than original
             pad = cfg.dataset.orig_width - cfg.training.image_width
             pad //= 2
-            tf_list += [transforms.ToTensor(), transforms.Pad(pad)]
+            tf_list += [transforms.Pad(pad)]
         else:
             tf_list.append(transforms.Resize((pixel_size, pixel_size)))
         if transform is None or transform == "None":
@@ -98,6 +101,7 @@ class DataManager:
         return root
 
     def _get_dataset(self, dataset):
+        log.info(f"Loading dataset {dataset}, this might take a while...")
         if dataset == "mnist":
             full_train = datasets.MNIST(
                 root=self.root, train=True, download=True, transform=self.transform
@@ -152,10 +156,11 @@ class DataManager:
             )
 
         if self.make_binary and dataset != "brain_tumor":
+            log.info("Turning it binary...")
             class_a = 0  # CHOOSE HERE classes for binary classification
             class_b = 1
             all_data = self.make_binary_dataset(all_data, class_a, class_b)
-
+        log.info("Returning dataset...")
         return all_data
 
     class _BinaryDataset(Dataset):
@@ -230,24 +235,32 @@ class DataManager:
             self._data, [train_size, val_size, test_size]
         )
 
+        log.info("Put dataset into dataloaders...")
         train_loader = DataLoader(
             train_ds,
             batch_size=self.batch_size,
             shuffle=True,
-            # pin_memory=True,
+            num_workers=1,
+            pin_memory=True,
+            persistent_workers=True,
         )
         val_loader = DataLoader(
             val_ds,
             batch_size=self.batch_size,
             shuffle=False,
-            # pin_memory=True,
+            num_workers=1,
+            pin_memory=True,
+            persistent_workers=True,
         )
         test_loader = DataLoader(
             test_ds,
             batch_size=self.batch_size,
             shuffle=False,
-            # pin_memory=True,
+            num_workers=1,
+            pin_memory=True,
+            persistent_workers=True,
         )
+        log.info("Returning dataloader")
         return train_loader, val_loader, test_loader
 
 
