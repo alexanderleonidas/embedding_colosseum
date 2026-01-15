@@ -1,7 +1,7 @@
 import os
 
 import torch
-from torch.utils.data import ConcatDataset, DataLoader, Dataset, random_split, Subset
+from torch.utils.data import ConcatDataset, DataLoader, Dataset, Subset, random_split
 from torchvision import datasets, transforms
 
 from src.dataset.brain_tumor import BRAINTUMOR, extract_brain_tumor_dataset
@@ -52,9 +52,13 @@ class DataManager:
                 # Pad as the target size is bigger than original
                 pad = cfg.training.image_width - cfg.dataset.orig_width
                 pad //= 2
-                tf_list += [ transforms.Pad(pad)]
+                tf_list += [transforms.Pad(pad)]
             else:
-                tf_list += [transforms.Resize((cfg.training.image_width, cfg.training.image_width))]
+                tf_list += [
+                    transforms.Resize(
+                        (cfg.training.image_width, cfg.training.image_width)
+                    )
+                ]
         if transform is None or transform == "None":
             pass
         elif transform == "GaussianBlur":
@@ -182,7 +186,9 @@ class DataManager:
                     labels = list(labels)
                 except Exception:
                     labels = [int(l) for l in labels]
-                self.indices = [i for i, y in enumerate(labels) if y == class_a or y == class_b]
+                self.indices = [
+                    i for i, y in enumerate(labels) if y == class_a or y == class_b
+                ]
             else:
                 # Fallback: single pass that calls __getitem__ (slower)
                 self.indices = [
@@ -199,7 +205,9 @@ class DataManager:
             y = self.neg if y == self.class_a else self.pos
             return x, y
 
-    def make_binary_dataset(self, dataset, class_a, class_b, negative_label=0, positive_label=1):
+    def make_binary_dataset(
+        self, dataset, class_a, class_b, negative_label=0, positive_label=1
+    ):
         """
         Convert ANY dataset (including ConcatDataset) into a binary dataset.
         Uses dataset attributes like `targets` or `labels` when available to avoid
@@ -218,7 +226,6 @@ class DataManager:
         return self._BinaryDataset(
             dataset, class_a, class_b, negative_label, positive_label
         )
-
 
     def get_loaders(self, train_split: float, val_split: float, test_split: float):
         """
@@ -252,19 +259,19 @@ class DataManager:
             train_ds,
             batch_size=self.batch_size,
             shuffle=True,
-            # pin_memory=True,
+            pin_memory=True,
         )
         val_loader = DataLoader(
             val_ds,
             batch_size=self.batch_size,
             shuffle=False,
-            # pin_memory=True,
+            pin_memory=True,
         )
         test_loader = DataLoader(
             test_ds,
             batch_size=self.batch_size,
             shuffle=False,
-            # pin_memory=True,
+            pin_memory=True,
         )
         return train_loader, val_loader, test_loader
 
@@ -272,7 +279,12 @@ class DataManager:
 # Example usage
 if __name__ == "__main__":
     dm = DataManager(
-        cfg=None, batch_size=100, seed=42, dataset="cxr8", pixel_size=640, make_binary=True
+        cfg=None,
+        batch_size=100,
+        seed=42,
+        dataset="cxr8",
+        pixel_size=640,
+        make_binary=True,
     )
     print(dm.root)
     train, val, test = dm.get_loaders(0.8, 0.1, 0.1)
