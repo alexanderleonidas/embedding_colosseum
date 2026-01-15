@@ -1,7 +1,8 @@
 defaults:
   - base
 
-name: st110
+name: stl10
 image_width_sweep: "2,4,8,16,32,64,128"
+orig_width: 96
 # 96 x 96
 

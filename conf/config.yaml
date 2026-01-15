@@ -9,7 +9,7 @@ defaults:
 
 # Random seed
 seed: 0
-embedding: FRQI
+embedding: NEQR
 # embedding: FRQI, NEQR, OQIM, NAQSS, ZZFeatureMap, AngleEncoding, RMP
 
 # Image preprocessing technique for the PxE analysis, used as input for all embedings for the evaluation
@@ -17,8 +17,8 @@ image_preprocessing: None
 # None, GaussianBlur, ContrastScaling
 
 training:
-  epochs: 3
-  batch_size: 30
+  epochs: 2
+  batch_size: 2
   image_width: 32 # Number of pixels on one side of the square image
   lr: 0.05
 

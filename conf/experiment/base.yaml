@@ -7,7 +7,7 @@ hydra:
   mode: MULTIRUN
   sweeper:
     params:
-      dataset: mnist, fashion, eurosat_rgb, eurosat_ms, cifar10 #, brain_tumor, st110, cxr8
+      dataset: mnist, fashion, eurosat_rgb, eurosat_ms, cifar10 #, stl10, cxr8 # Exclude the braintumor -> cuda_error
       seed: 0, 1
       image_preprocessing: None, GaussianBlur, ContrastScaling, MedianBlur, BilateralFilter, HomomorphicFilter
       embedding: FRQI, NEQR, OQIM, NAQSS, ZZFeatureMap, AngleEncoding, RMP
