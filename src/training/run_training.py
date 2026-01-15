@@ -79,6 +79,7 @@ def run_classifier(cfg):
 
     # applying PCA for PQC-style embeddings
     if cfg.embedding in ["ZZFeatureMap", "AngleEncoding", "RMP"]:
+        log.info("Applying PCA Loader to the dataset")
         train_loader, validation_loader, test_loader = transform_to_pca_loader(
             train_loader,
             validation_loader,
@@ -87,6 +88,7 @@ def run_classifier(cfg):
             n_components=embedding.num_features,
         )
 
+    log.info("Initiate model")
     model = VariationalClassifier(
         num_qubits=embedding.num_qubits,
         num_layers=cfg.model.num_layers,

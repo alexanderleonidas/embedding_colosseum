@@ -3,11 +3,11 @@
 # Define the parameters to sweep over
 hydra:
   launcher:
-    n_jobs: 1 # -1 to use all CPU cores
+    n_jobs: 15 # -1 to use all CPU cores
   mode: MULTIRUN
   sweeper:
     params:
-      dataset: mnist, fashion, eurosat_rgb, eurosat_ms, cxr8, cifar10, brain_tumor, st110
+      dataset: mnist, fashion, eurosat_rgb, eurosat_ms, cifar10 #, brain_tumor, st110, cxr8
       seed: 0, 1
       image_preprocessing: None, GaussianBlur, ContrastScaling, MedianBlur, BilateralFilter, HomomorphicFilter
       embedding: FRQI, NEQR, OQIM, NAQSS, ZZFeatureMap, AngleEncoding, RMP

@@ -1,6 +1,6 @@
 defaults:
   - _self_
-  - dataset: cifar10
+  - dataset: eurosat_ms
 # Logging config
   - override hydra/job_logging: custom
   - override hydra/hydra_logging: default
@@ -9,7 +9,7 @@ defaults:
 
 # Random seed
 seed: 0
-embedding: ZZFeatureMap
+embedding: FRQI
 # embedding: FRQI, NEQR, OQIM, NAQSS, ZZFeatureMap, AngleEncoding, RMP
 
 # Image preprocessing technique for the PxE analysis, used as input for all embedings for the evaluation
@@ -17,9 +17,9 @@ image_preprocessing: None
 # None, GaussianBlur, ContrastScaling
 
 training:
-  epochs: 1
-  batch_size: 100
-  image_width: 2 # Number of pixels on one side of the square image
+  epochs: 3
+  batch_size: 30
+  image_width: 32 # Number of pixels on one side of the square image
   lr: 0.05
 
 model:

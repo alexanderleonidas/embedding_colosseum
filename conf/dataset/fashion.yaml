@@ -2,6 +2,6 @@ defaults:
   - base
 
 name: fashion
-image_width_sweep: "32"
+image_width_sweep: "16,32"
 # Original Size: 1 x 28 x 28
 orig_width: 28

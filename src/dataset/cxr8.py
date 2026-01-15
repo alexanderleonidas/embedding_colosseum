@@ -1,8 +1,11 @@
 import os
+import logging
 
 import pandas as pd
 from PIL import Image
 from torch.utils.data import Dataset
+
+log = logging.getLogger(__name__)
 
 # The default size of the pictures in this dataset is 1024x1024 pixels
 
