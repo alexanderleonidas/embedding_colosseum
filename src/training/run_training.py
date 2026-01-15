@@ -118,7 +118,7 @@ def run_classifier(cfg):
                 y = y.to(device)
 
                 optimizer.zero_grad()
-                if cfg.embedding in ["NEQR", "OQIM", "NAQSS"]:
+                if cfg.embedding.name in ["NEQR", "OQIM", "NAQSS"]:
                     # Batch processing is not supported by these embeddings
                     pred = model.classify(X, batch_processing=False)
                 else:
