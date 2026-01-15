@@ -78,7 +78,7 @@ def run_classifier(cfg):
     )
 
     # applying PCA for PQC-style embeddings
-    if cfg.embedding in ["ZZFeatureMap", "AngleEncoding", "RMP"]:
+    if cfg.embedding.pca:  # in ["ZZFeatureMap", "AngleEncoding", "RMP"]:
         log.info("Applying PCA Loader to the dataset")
         train_loader, validation_loader, test_loader = transform_to_pca_loader(
             train_loader,

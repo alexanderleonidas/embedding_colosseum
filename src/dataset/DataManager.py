@@ -48,17 +48,19 @@ class DataManager:
         self.generator = torch.Generator().manual_seed(seed)
         tf_list = [transforms.ToTensor()]
         if cfg is not None:
-            if cfg.dataset.orig_width - cfg.training.image_width < 0:
-                # Pad as the target size is bigger than original
-                pad = cfg.training.image_width - cfg.dataset.orig_width
-                pad //= 2
-                tf_list += [transforms.Pad(pad)]
-            else:
-                tf_list += [
-                    transforms.Resize(
-                        (cfg.training.image_width, cfg.training.image_width)
-                    )
-                ]
+            # Resizing and padding not needed for pca based methods, taking original size
+            if not cfg.embedding.pca:
+                if cfg.dataset.orig_width - cfg.training.image_width < 0:
+                    # Pad as the target size is bigger than original
+                    pad = cfg.training.image_width - cfg.dataset.orig_width
+                    pad //= 2
+                    tf_list += [transforms.Pad(pad)]
+                else:
+                    tf_list += [
+                        transforms.Resize(
+                            (cfg.training.image_width, cfg.training.image_width)
+                        )
+                    ]
 
             if not cfg.embedding.supports_color:
                 tf_list.append(transforms.Grayscale(num_output_channels=1))
