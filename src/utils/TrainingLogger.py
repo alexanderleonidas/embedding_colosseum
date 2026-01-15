@@ -90,7 +90,7 @@ class TrainingLogger:
 
         # Save raw results for later analysis
         np.savez_compressed(
-            os.path.join(self.root, "raw_results.npz"),
+            os.path.join(self.root, f"epoch_{epoch}_raw_val_results.npz"),
             y_true=self.artifact_y_true,
             y_pred=self.artifact_y_pred,
         )
