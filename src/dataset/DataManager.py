@@ -59,6 +59,10 @@ class DataManager:
                         (cfg.training.image_width, cfg.training.image_width)
                     )
                 ]
+
+            if not cfg.embedding.supports_color:
+                tf_list.append(transforms.Grayscale(num_output_channels=1))
+
         if transform is None or transform == "None":
             pass
         elif transform == "GaussianBlur":

@@ -8,9 +8,9 @@ hydra:
   sweeper:
     params:
       dataset: mnist, fashion, eurosat_rgb, eurosat_ms, cifar10 #, brain_tumor, st110, cxr8
+      embedding: FRQI, NEQR, OQIM, NAQSS, ZZFeatureMap, AngleEncoding, RMP
       seed: 0, 1
       image_preprocessing: None, GaussianBlur, ContrastScaling, MedianBlur, BilateralFilter, HomomorphicFilter
-      embedding: FRQI, NEQR, OQIM, NAQSS, ZZFeatureMap, AngleEncoding, RMP
       training.image_width: ${dataset.image_width_sweep}
       training.batch_size: 100
 
