@@ -50,11 +50,11 @@ class DataManager:
         if cfg is not None:
             if cfg.dataset.orig_width - cfg.training.image_width < 0:
                 # Pad as the target size is bigger than original
-                pad = cfg.dataset.orig_width - cfg.training.image_width
+                pad = cfg.training.image_width - cfg.dataset.orig_width
                 pad //= 2
                 tf_list += [ transforms.Pad(pad)]
-        else:
-            tf_list += [transforms.Resize((pixel_size, pixel_size))]
+            else:
+                tf_list += [transforms.Resize((cfg.training.image_width, cfg.training.image_width))]
         if transform is None or transform == "None":
             pass
         elif transform == "GaussianBlur":
