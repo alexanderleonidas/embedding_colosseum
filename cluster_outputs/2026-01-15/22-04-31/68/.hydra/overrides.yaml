@@ -1,0 +1,7 @@
+- dataset=fashion
+- seed=0
+- image_preprocessing=ContrastScaling
+- embedding=OQIM
+- training.image_width=16
+- training.batch_size=100
+- +experiment=one

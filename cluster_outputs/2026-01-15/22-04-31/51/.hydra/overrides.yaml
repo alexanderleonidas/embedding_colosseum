@@ -1,0 +1,7 @@
+- dataset=fashion
+- seed=0
+- image_preprocessing=None
+- embedding=NEQR
+- training.image_width=32
+- training.batch_size=100
+- +experiment=one

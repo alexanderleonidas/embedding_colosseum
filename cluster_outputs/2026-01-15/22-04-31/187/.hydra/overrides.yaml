@@ -1,0 +1,7 @@
+- dataset=eurosat_ms
+- seed=0
+- image_preprocessing=HomomorphicFilter
+- embedding=NEQR
+- training.image_width=32
+- training.batch_size=100
+- +experiment=one
