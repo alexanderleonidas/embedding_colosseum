@@ -1,0 +1,6 @@
+- dataset=mnist
+- seed=0
+- image_preprocessing=None
+- embedding=ZZFeatureMap
+- training.batch_size=100
+- +experiment=two

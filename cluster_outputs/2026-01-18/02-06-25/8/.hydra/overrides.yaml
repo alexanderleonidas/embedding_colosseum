@@ -1,0 +1,6 @@
+- dataset=mnist
+- seed=1
+- image_preprocessing=ContrastScaling
+- embedding=RMP
+- training.batch_size=100
+- +experiment=two

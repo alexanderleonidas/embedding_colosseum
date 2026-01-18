@@ -1,0 +1,6 @@
+- dataset=cifar10
+- seed=0
+- image_preprocessing=ContrastScaling
+- embedding=ZZFeatureMap
+- training.batch_size=100
+- +experiment=two

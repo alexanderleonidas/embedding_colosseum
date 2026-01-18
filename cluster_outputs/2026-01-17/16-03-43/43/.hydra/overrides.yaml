@@ -1,0 +1,6 @@
+- dataset=eurosat_rgb
+- seed=0
+- image_preprocessing=ContrastScaling
+- embedding=AngleEncoding
+- training.batch_size=100
+- +experiment=two

@@ -1,0 +1,6 @@
+- dataset=eurosat_ms
+- seed=1
+- image_preprocessing=MedianBlur
+- embedding=RMP
+- training.batch_size=100
+- +experiment=two

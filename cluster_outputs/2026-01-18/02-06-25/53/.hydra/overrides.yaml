@@ -1,0 +1,6 @@
+- dataset=eurosat_rgb
+- seed=1
+- image_preprocessing=HomomorphicFilter
+- embedding=RMP
+- training.batch_size=100
+- +experiment=two

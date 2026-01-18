@@ -1,0 +1,6 @@
+- dataset=cifar10
+- seed=1
+- image_preprocessing=None
+- embedding=ZZFeatureMap
+- training.batch_size=100
+- +experiment=two

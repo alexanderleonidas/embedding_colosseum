@@ -1,0 +1,19 @@
+seed: 0
+image_preprocessing: MedianBlur
+training:
+  epochs: 1
+  batch_size: 100
+  image_width: 32
+  lr: 0.05
+model:
+  num_layers: 3
+dataset:
+  num_classes: 2
+  binary: true
+  name: eurosat_rgb
+  image_width_sweep: '64'
+  orig_width: 64
+embedding:
+  name: AngleEncoding
+  pca: true
+  supports_color: true

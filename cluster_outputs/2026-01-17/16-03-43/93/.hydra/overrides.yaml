@@ -1,0 +1,6 @@
+- dataset=stl10
+- seed=0
+- image_preprocessing=GaussianBlur
+- embedding=ZZFeatureMap
+- training.batch_size=100
+- +experiment=two

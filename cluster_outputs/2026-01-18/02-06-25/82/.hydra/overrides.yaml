@@ -1,0 +1,6 @@
+- dataset=cifar10
+- seed=1
+- image_preprocessing=MedianBlur
+- embedding=AngleEncoding
+- training.batch_size=100
+- +experiment=two

@@ -1,0 +1,6 @@
+- dataset=stl10
+- seed=1
+- image_preprocessing=BilateralFilter
+- embedding=RMP
+- training.batch_size=100
+- +experiment=two

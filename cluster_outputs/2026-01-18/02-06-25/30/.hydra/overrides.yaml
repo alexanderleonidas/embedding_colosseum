@@ -1,0 +1,6 @@
+- dataset=fashion
+- seed=1
+- image_preprocessing=BilateralFilter
+- embedding=ZZFeatureMap
+- training.batch_size=100
+- +experiment=two

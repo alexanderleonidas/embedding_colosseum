@@ -1,0 +1,6 @@
+- dataset=cxr8
+- seed=1
+- image_preprocessing=GaussianBlur
+- embedding=RMP
+- training.batch_size=100
+- +experiment=two
