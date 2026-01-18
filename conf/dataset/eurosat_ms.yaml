@@ -3,5 +3,5 @@ defaults:
   - base
 
 name: eurosat_ms
-image_width_sweep: "64"
+image_width_sweep: "2,4,8,16,32"
 orig_width: 64

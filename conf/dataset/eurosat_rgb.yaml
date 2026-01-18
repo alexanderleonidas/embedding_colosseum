@@ -3,6 +3,6 @@ defaults:
   - base
 
 name: eurosat_rgb
-image_width_sweep: "64"
+image_width_sweep: "2,4,8,16,32" # "64"
 # Original Size: 3 x 64 x 64
 orig_width: 64
