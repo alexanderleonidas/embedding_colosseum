@@ -1,0 +1,47 @@
+[2026-01-17 19:04:17,118] [INFO] - seed: 0
+image_preprocessing: BilateralFilter
+training:
+  epochs: 1
+  batch_size: 100
+  image_width: 32
+  lr: 0.05
+model:
+  num_layers: 3
+dataset:
+  num_classes: 2
+  binary: true
+  name: stl10
+  image_width_sweep: 2,4,8,16,32,64
+  orig_width: 96
+embedding:
+  name: ZZFeatureMap
+  pca: true
+  supports_color: true
+
+[2026-01-17 19:04:17,123] [INFO] - Using cuda.
+[2026-01-17 19:04:28,245] [INFO] - Dataset: stl10 | Train Size: 1819 | Validation Size: 521 | Test Size: 260
+[2026-01-17 19:04:28,250] [INFO] - Applying PCA Loader to the dataset
+[2026-01-17 19:04:33,498] [INFO] - Initiate model
+[2026-01-17 19:04:33,582] [INFO] - Weights Shape: torch.Size([3, 6, 3])
+[2026-01-17 19:04:33,583] [INFO] - Bias Shape: torch.Size([2])
+[2026-01-17 19:05:27,071] [INFO] - [  100/ 1819] | Cost: 0.7850645 | Accuracy: 0.3100000
+[2026-01-17 19:06:20,572] [INFO] - [  200/ 1819] | Cost: 0.7278982 | Accuracy: 0.4200000
+[2026-01-17 19:07:14,054] [INFO] - [  300/ 1819] | Cost: 0.7047220 | Accuracy: 0.4500000
+[2026-01-17 19:08:07,534] [INFO] - [  400/ 1819] | Cost: 0.6955307 | Accuracy: 0.5000000
+[2026-01-17 19:09:01,009] [INFO] - [  500/ 1819] | Cost: 0.6873270 | Accuracy: 0.5000000
+[2026-01-17 19:09:54,503] [INFO] - [  600/ 1819] | Cost: 0.6702178 | Accuracy: 0.5600000
+[2026-01-17 19:10:47,795] [INFO] - [  700/ 1819] | Cost: 0.6588359 | Accuracy: 0.6200000
+[2026-01-17 19:11:41,325] [INFO] - [  800/ 1819] | Cost: 0.6590119 | Accuracy: 0.6600000
+[2026-01-17 19:12:34,790] [INFO] - [  900/ 1819] | Cost: 0.6250347 | Accuracy: 0.7000000
+[2026-01-17 19:13:28,302] [INFO] - [ 1000/ 1819] | Cost: 0.6630480 | Accuracy: 0.5800000
+[2026-01-17 19:14:21,825] [INFO] - [ 1100/ 1819] | Cost: 0.6533664 | Accuracy: 0.6500000
+[2026-01-17 19:15:15,270] [INFO] - [ 1200/ 1819] | Cost: 0.6557719 | Accuracy: 0.6700000
+[2026-01-17 19:15:59,717] [INFO] - [ 1300/ 1819] | Cost: 0.6145307 | Accuracy: 0.7400000
+[2026-01-17 19:16:42,226] [INFO] - [ 1400/ 1819] | Cost: 0.6087330 | Accuracy: 0.7900000
+[2026-01-17 19:17:24,641] [INFO] - [ 1500/ 1819] | Cost: 0.6547901 | Accuracy: 0.6100000
+[2026-01-17 19:18:07,214] [INFO] - [ 1600/ 1819] | Cost: 0.6339814 | Accuracy: 0.7000000
+[2026-01-17 19:18:59,932] [INFO] - [ 1700/ 1819] | Cost: 0.6230803 | Accuracy: 0.7000000
+[2026-01-17 19:19:53,246] [INFO] - [ 1800/ 1819] | Cost: 0.6254516 | Accuracy: 0.7000000
+[2026-01-17 19:20:03,445] [INFO] - [ 1900/ 1819] | Cost: 0.6339764 | Accuracy: 0.6842105
+[2026-01-17 19:20:12,512] [INFO] - Model dict saved to /workspace/persistent/embedding_colosseum/multirun/2026-01-17/16-03-43/102/saved_models/model_epoch-0.pt
+[2026-01-17 19:20:12,513] [INFO] - Validation for epoch   0 | Cost: 0.6330190 | Accuracy: 0.6369048

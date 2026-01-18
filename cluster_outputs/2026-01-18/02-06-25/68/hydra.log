@@ -1,0 +1,23 @@
+[2026-01-18 04:21:16,772] [INFO] - seed: 1
+image_preprocessing: BilateralFilter
+training:
+  epochs: 1
+  batch_size: 100
+  image_width: 32
+  lr: 0.05
+model:
+  num_layers: 3
+dataset:
+  num_classes: 2
+  binary: true
+  name: eurosat_ms
+  image_width_sweep: '64'
+  orig_width: 64
+embedding:
+  name: RMP
+  pca: true
+  supports_color: true
+
+[2026-01-18 04:21:16,773] [INFO] - Using cuda.
+[2026-01-18 04:21:16,811] [INFO] - Dataset: eurosat_ms | Train Size: 4200 | Validation Size: 1200 | Test Size: 600
+[2026-01-18 04:21:16,813] [INFO] - Applying PCA Loader to the dataset

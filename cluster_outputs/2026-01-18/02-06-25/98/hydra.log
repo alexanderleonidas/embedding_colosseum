@@ -1,0 +1,45 @@
+[2026-01-18 05:12:54,439] [INFO] - seed: 1
+image_preprocessing: ContrastScaling
+training:
+  epochs: 1
+  batch_size: 100
+  image_width: 32
+  lr: 0.05
+model:
+  num_layers: 3
+dataset:
+  num_classes: 2
+  binary: true
+  name: stl10
+  image_width_sweep: 2,4,8,16,32,64
+  orig_width: 96
+embedding:
+  name: RMP
+  pca: true
+  supports_color: true
+
+[2026-01-18 05:12:54,441] [INFO] - Using cuda.
+[2026-01-18 05:13:05,459] [INFO] - Dataset: stl10 | Train Size: 1819 | Validation Size: 521 | Test Size: 260
+[2026-01-18 05:13:05,462] [INFO] - Applying PCA Loader to the dataset
+[2026-01-18 05:13:07,502] [INFO] - Initiate model
+[2026-01-18 05:13:07,504] [INFO] - Weights Shape: torch.Size([3, 6, 3])
+[2026-01-18 05:13:07,505] [INFO] - Bias Shape: torch.Size([2])
+[2026-01-18 05:13:41,217] [INFO] - [  100/ 1819] | Cost: 0.7022858 | Accuracy: 0.4800000
+[2026-01-18 05:14:15,602] [INFO] - [  200/ 1819] | Cost: 0.6886934 | Accuracy: 0.5800000
+[2026-01-18 05:14:50,611] [INFO] - [  300/ 1819] | Cost: 0.6832829 | Accuracy: 0.5500000
+[2026-01-18 05:15:25,662] [INFO] - [  400/ 1819] | Cost: 0.6951869 | Accuracy: 0.5100000
+[2026-01-18 05:16:00,507] [INFO] - [  500/ 1819] | Cost: 0.6643819 | Accuracy: 0.6100000
+[2026-01-18 05:16:35,551] [INFO] - [  600/ 1819] | Cost: 0.7126858 | Accuracy: 0.4700000
+[2026-01-18 05:17:10,602] [INFO] - [  700/ 1819] | Cost: 0.6783104 | Accuracy: 0.5500000
+[2026-01-18 05:17:42,359] [INFO] - [  800/ 1819] | Cost: 0.7148569 | Accuracy: 0.4000000
+[2026-01-18 05:18:11,949] [INFO] - [  900/ 1819] | Cost: 0.6930171 | Accuracy: 0.4400000
+[2026-01-18 05:18:45,373] [INFO] - [ 1000/ 1819] | Cost: 0.6834857 | Accuracy: 0.6700000
+[2026-01-18 05:19:15,032] [INFO] - [ 1100/ 1819] | Cost: 0.7035330 | Accuracy: 0.4300000
+[2026-01-18 05:19:36,657] [INFO] - [ 1200/ 1819] | Cost: 0.6895733 | Accuracy: 0.5000000
+[2026-01-18 05:19:57,251] [INFO] - [ 1300/ 1819] | Cost: 0.6820180 | Accuracy: 0.5400000
+[2026-01-18 05:20:17,589] [INFO] - [ 1400/ 1819] | Cost: 0.6880638 | Accuracy: 0.5300000
+[2026-01-18 05:20:34,972] [INFO] - [ 1500/ 1819] | Cost: 0.7161964 | Accuracy: 0.4200000
+[2026-01-18 05:20:55,116] [INFO] - [ 1600/ 1819] | Cost: 0.6891952 | Accuracy: 0.4900000
+[2026-01-18 05:21:07,827] [INFO] - [ 1700/ 1819] | Cost: 0.6815599 | Accuracy: 0.5300000
+[2026-01-18 05:21:20,022] [INFO] - [ 1800/ 1819] | Cost: 0.6830945 | Accuracy: 0.5200000
+[2026-01-18 05:21:22,001] [INFO] - [ 1900/ 1819] | Cost: 0.6764688 | Accuracy: 0.6842105

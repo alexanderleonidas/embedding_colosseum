@@ -1,0 +1,23 @@
+[2026-01-17 19:20:13,213] [INFO] - seed: 0
+image_preprocessing: MedianBlur
+training:
+  epochs: 1
+  batch_size: 100
+  image_width: 32
+  lr: 0.05
+model:
+  num_layers: 3
+dataset:
+  num_classes: 2
+  binary: true
+  name: cxr8
+  image_width_sweep: 2,4,8,16,32,64
+  orig_width: 1024
+embedding:
+  name: ZZFeatureMap
+  pca: true
+  supports_color: true
+
+[2026-01-17 19:20:13,215] [INFO] - Using cuda.
+[2026-01-17 19:20:13,327] [INFO] - Dataset: cxr8 | Train Size: 2270 | Validation Size: 650 | Test Size: 324
+[2026-01-17 19:20:13,329] [INFO] - Applying PCA Loader to the dataset

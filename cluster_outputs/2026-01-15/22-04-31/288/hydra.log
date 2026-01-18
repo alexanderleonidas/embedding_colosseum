@@ -1,0 +1,50 @@
+[2026-01-17 05:53:47,175] [INFO] - seed: 0
+image_preprocessing: None
+training:
+  epochs: 1
+  batch_size: 100
+  image_width: 16
+  lr: 0.05
+model:
+  num_layers: 3
+dataset:
+  num_classes: 2
+  binary: true
+  name: cxr8
+  image_width_sweep: 2,4,8,16,32,64
+  orig_width: 1024
+embedding:
+  name: FRQI
+  pca: false
+  supports_color: false
+
+[2026-01-17 05:53:47,177] [INFO] - Using cuda.
+[2026-01-17 05:53:47,554] [INFO] - Dataset: cxr8 | Train Size: 2270 | Validation Size: 650 | Test Size: 324
+[2026-01-17 05:53:47,556] [INFO] - Initiate model
+[2026-01-17 05:53:47,559] [INFO] - Weights Shape: torch.Size([3, 9, 3])
+[2026-01-17 05:53:47,560] [INFO] - Bias Shape: torch.Size([2])
+[2026-01-17 05:54:34,811] [INFO] - [  100/ 2270] | Cost: 0.6739076 | Accuracy: 0.8200000
+[2026-01-17 05:55:28,296] [INFO] - [  200/ 2270] | Cost: 0.6123116 | Accuracy: 0.8400000
+[2026-01-17 05:56:25,009] [INFO] - [  300/ 2270] | Cost: 0.5557559 | Accuracy: 0.8500000
+[2026-01-17 05:57:26,639] [INFO] - [  400/ 2270] | Cost: 0.5381149 | Accuracy: 0.8200000
+[2026-01-17 05:58:24,899] [INFO] - [  500/ 2270] | Cost: 0.4441236 | Accuracy: 0.9000000
+[2026-01-17 05:59:11,392] [INFO] - [  600/ 2270] | Cost: 0.4252783 | Accuracy: 0.8900000
+[2026-01-17 05:59:59,269] [INFO] - [  700/ 2270] | Cost: 0.4722948 | Accuracy: 0.8300000
+[2026-01-17 06:00:56,321] [INFO] - [  800/ 2270] | Cost: 0.4522175 | Accuracy: 0.8400000
+[2026-01-17 06:01:48,309] [INFO] - [  900/ 2270] | Cost: 0.4135976 | Accuracy: 0.8600000
+[2026-01-17 06:02:51,044] [INFO] - [ 1000/ 2270] | Cost: 0.4589680 | Accuracy: 0.8300000
+[2026-01-17 06:03:54,386] [INFO] - [ 1100/ 2270] | Cost: 0.3907850 | Accuracy: 0.8700000
+[2026-01-17 06:04:43,465] [INFO] - [ 1200/ 2270] | Cost: 0.4615017 | Accuracy: 0.8300000
+[2026-01-17 06:05:27,292] [INFO] - [ 1300/ 2270] | Cost: 0.4266424 | Accuracy: 0.8500000
+[2026-01-17 06:06:10,368] [INFO] - [ 1400/ 2270] | Cost: 0.5752182 | Accuracy: 0.7700000
+[2026-01-17 06:07:04,882] [INFO] - [ 1500/ 2270] | Cost: 0.4416345 | Accuracy: 0.8400000
+[2026-01-17 06:07:57,395] [INFO] - [ 1600/ 2270] | Cost: 0.4603522 | Accuracy: 0.8300000
+[2026-01-17 06:08:45,726] [INFO] - [ 1700/ 2270] | Cost: 0.2567828 | Accuracy: 0.9500000
+[2026-01-17 06:09:43,390] [INFO] - [ 1800/ 2270] | Cost: 0.2706779 | Accuracy: 0.9400000
+[2026-01-17 06:10:35,488] [INFO] - [ 1900/ 2270] | Cost: 0.4008597 | Accuracy: 0.8600000
+[2026-01-17 06:11:15,660] [INFO] - [ 2000/ 2270] | Cost: 0.4526739 | Accuracy: 0.8300000
+[2026-01-17 06:12:09,887] [INFO] - [ 2100/ 2270] | Cost: 0.4745767 | Accuracy: 0.8200000
+[2026-01-17 06:13:06,348] [INFO] - [ 2200/ 2270] | Cost: 0.3684139 | Accuracy: 0.8800000
+[2026-01-17 06:13:48,795] [INFO] - [ 2300/ 2270] | Cost: 0.3811731 | Accuracy: 0.8714286
+[2026-01-17 06:16:01,015] [INFO] - Model dict saved to /workspace/persistent/embedding_colosseum/multirun/2026-01-15/22-04-31/288/saved_models/model_epoch-0.pt
+[2026-01-17 06:16:01,016] [INFO] - Validation for epoch   0 | Cost: 0.4408341 | Accuracy: 0.8400000

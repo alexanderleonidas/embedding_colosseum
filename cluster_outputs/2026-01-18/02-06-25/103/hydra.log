@@ -1,0 +1,32 @@
+[2026-01-18 05:18:02,378] [INFO] - seed: 1
+image_preprocessing: BilateralFilter
+training:
+  epochs: 1
+  batch_size: 100
+  image_width: 32
+  lr: 0.05
+model:
+  num_layers: 3
+dataset:
+  num_classes: 2
+  binary: true
+  name: stl10
+  image_width_sweep: 2,4,8,16,32,64
+  orig_width: 96
+embedding:
+  name: AngleEncoding
+  pca: true
+  supports_color: true
+
+[2026-01-18 05:18:02,383] [INFO] - Using cuda.
+[2026-01-18 05:18:13,402] [INFO] - Dataset: stl10 | Train Size: 1819 | Validation Size: 521 | Test Size: 260
+[2026-01-18 05:18:13,405] [INFO] - Applying PCA Loader to the dataset
+[2026-01-18 05:18:18,814] [INFO] - Initiate model
+[2026-01-18 05:18:18,879] [INFO] - Weights Shape: torch.Size([3, 6, 3])
+[2026-01-18 05:18:18,880] [INFO] - Bias Shape: torch.Size([2])
+[2026-01-18 05:18:52,040] [INFO] - [  100/ 1819] | Cost: 0.6880456 | Accuracy: 0.5200000
+[2026-01-18 05:19:19,801] [INFO] - [  200/ 1819] | Cost: 0.6817247 | Accuracy: 0.6100000
+[2026-01-18 05:19:40,457] [INFO] - [  300/ 1819] | Cost: 0.6705105 | Accuracy: 0.7300000
+[2026-01-18 05:20:01,500] [INFO] - [  400/ 1819] | Cost: 0.6657861 | Accuracy: 0.7400000
+[2026-01-18 05:20:21,430] [INFO] - [  500/ 1819] | Cost: 0.6486084 | Accuracy: 0.6900000
+[2026-01-18 05:20:39,017] [INFO] - [  600/ 1819] | Cost: 0.6542829 | Accuracy: 0.6600000

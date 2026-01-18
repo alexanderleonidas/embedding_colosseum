@@ -1,0 +1,25 @@
+[2026-01-16 19:21:36,138] [INFO] - seed: 0
+image_preprocessing: GaussianBlur
+training:
+  epochs: 1
+  batch_size: 100
+  image_width: 32
+  lr: 0.05
+model:
+  num_layers: 3
+dataset:
+  num_classes: 2
+  binary: true
+  name: eurosat_ms
+  image_width_sweep: '64'
+  orig_width: 64
+embedding:
+  name: NAQSS
+  pca: false
+  supports_color: false
+
+[2026-01-16 19:21:36,140] [INFO] - Using cuda.
+[2026-01-16 19:21:36,178] [INFO] - Dataset: eurosat_ms | Train Size: 4200 | Validation Size: 1200 | Test Size: 600
+[2026-01-16 19:21:36,180] [INFO] - Initiate model
+[2026-01-16 19:21:36,182] [INFO] - Weights Shape: torch.Size([3, 19, 3])
+[2026-01-16 19:21:36,184] [INFO] - Bias Shape: torch.Size([2])
