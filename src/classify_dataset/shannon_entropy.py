@@ -1,13 +1,17 @@
-import torch
 import os
-import numpy as np
-from torch.utils.data import DataLoader
 from collections import defaultdict
+
+import numpy as np
+import torch
 import tqdm
+from torch.utils.data import DataLoader
+
 from dataset.DataManager import DataManager
 
 
-def compute_shannon_entropy_from_dataloader(dataloader: DataLoader, bins: int = 256, normalize: bool = True) -> dict:
+def compute_shannon_entropy_from_dataloader(
+    dataloader: DataLoader, bins: int = 256, normalize: bool = True
+) -> dict:
     """
     Compute Shannon Entropy for all images in a PyTorch DataLoader.
 
@@ -27,11 +31,11 @@ def compute_shannon_entropy_from_dataloader(dataloader: DataLoader, bins: int = 
     """
     # Set device
     if torch.cuda.is_available():
-        device = torch.device('cuda')
+        device = torch.device("cuda")
     elif torch.backends.mps.is_available():
-        device = torch.device('mps')
+        device = torch.device("mps")
     else:
-        device = torch.device('cpu')
+        device = torch.device("cpu")
 
     # Initialize storage
     all_entropies = []
@@ -45,7 +49,9 @@ def compute_shannon_entropy_from_dataloader(dataloader: DataLoader, bins: int = 
 
     # Process batches
     with torch.no_grad():
-        for batch_idx, batch_data in enumerate(tqdm.tqdm(dataloader, desc="Processing images")):
+        for batch_idx, batch_data in enumerate(
+            tqdm.tqdm(dataloader, desc="Processing images")
+        ):
             # Handle different DataLoader return formats
             if isinstance(batch_data, (list, tuple)):
                 images, labels = batch_data[0], batch_data[1]
@@ -66,7 +72,7 @@ def compute_shannon_entropy_from_dataloader(dataloader: DataLoader, bins: int = 
                 # Convert to grayscale if RGB (weighted average)
                 if image.shape[0] == 3:  # RGB: [C, H, W]
                     # Convert to grayscale using luminance weights
-                    gray_image = (0.299 * image[0] + 0.587 * image[1] + 0.114 * image[2])
+                    gray_image = 0.299 * image[0] + 0.587 * image[1] + 0.114 * image[2]
                     intensity_tensor = gray_image
                 elif image.shape[0] == 1:  # Grayscale: [1, H, W]
                     intensity_tensor = image[0]
@@ -86,7 +92,9 @@ def compute_shannon_entropy_from_dataloader(dataloader: DataLoader, bins: int = 
                 intensity_np = intensity_tensor.cpu().numpy().flatten()
 
                 # Compute histogram and probabilities
-                hist, bin_edges = np.histogram(intensity_np, bins=bins, range=(0.0, 1.0))
+                hist, bin_edges = np.histogram(
+                    intensity_np, bins=bins, range=(0.0, 1.0)
+                )
                 probabilities = hist / np.sum(hist)
 
                 # Remove zero probabilities to avoid log(0)
@@ -103,7 +111,9 @@ def compute_shannon_entropy_from_dataloader(dataloader: DataLoader, bins: int = 
 
                 # Store label if available
                 if labels is not None:
-                    label = labels[i].item() if torch.is_tensor(labels[i]) else labels[i]
+                    label = (
+                        labels[i].item() if torch.is_tensor(labels[i]) else labels[i]
+                    )
                     all_labels.append(label)
                     class_entropies[label].append(entropy)
 
@@ -113,14 +123,14 @@ def compute_shannon_entropy_from_dataloader(dataloader: DataLoader, bins: int = 
 
     # Compute overall statistics
     results = {
-        'entropies': all_entropies,
-        'mean_entropy': float(np.mean(all_entropies)),
-        'std_entropy': float(np.std(all_entropies)),
-        'min_entropy': float(np.min(all_entropies)),
-        'max_entropy': float(np.max(all_entropies)),
-        'bins': bins,
-        'normalized': normalize,
-        'total_images': len(all_entropies)
+        "entropies": all_entropies,
+        "mean_entropy": float(np.mean(all_entropies)),
+        "std_entropy": float(np.std(all_entropies)),
+        "min_entropy": float(np.min(all_entropies)),
+        "max_entropy": float(np.max(all_entropies)),
+        "bins": bins,
+        "normalized": normalize,
+        "total_images": len(all_entropies),
     }
 
     # Compute per-class statistics if labels are available
@@ -129,24 +139,40 @@ def compute_shannon_entropy_from_dataloader(dataloader: DataLoader, bins: int = 
         for class_label, entropies in class_entropies.items():
             entropies_arr = np.array(entropies)
             per_class_stats[class_label] = {
-                'mean': float(np.mean(entropies_arr)),
-                'std': float(np.std(entropies_arr)),
-                'min': float(np.min(entropies_arr)),
-                'max': float(np.max(entropies_arr)),
-                'count': len(entropies_arr)
+                "mean": float(np.mean(entropies_arr)),
+                "std": float(np.std(entropies_arr)),
+                "min": float(np.min(entropies_arr)),
+                "max": float(np.max(entropies_arr)),
+                "count": len(entropies_arr),
             }
-        results['per_class_stats'] = per_class_stats
+        results["per_class_stats"] = per_class_stats
 
     return results
 
-if __name__ == '__main__':
-    exp_dict = {"mnist": 28, "fashion": 28, "cifar10": 32, "stl10": 96, "cxr8": 1024, "brain_tumor": 640, "eurosat_rgb": 64}
+
+if __name__ == "__main__":
+    exp_dict = {
+        "mnist": 28,
+        "fashion": 28,
+        "cifar10": 32,
+        "stl10": 96,
+        "cxr8": 1024,
+        "brain_tumor": 640,
+        "eurosat_rgb": 64,
+    }
     for dataset_name, pixel_size in exp_dict.items():
-        dm = DataManager(batch_size=100, seed=42, pixel_size=pixel_size, dataset=dataset_name)
-        train_loader, _, _ = dm.get_loaders(1,0,0)
+        dm = DataManager(
+            batch_size=100,
+            seed=42,
+            pixel_size=pixel_size,
+            dataset=dataset_name,
+        )
+        train_loader, _, _ = dm.get_loaders(1, 0, 0)
 
         # Compute entropy (CPU version)
-        results = compute_shannon_entropy_from_dataloader(train_loader,bins=256,normalize=True)
+        results = compute_shannon_entropy_from_dataloader(
+            train_loader, bins=256, normalize=True
+        )
 
         # Save results to CSV
         file_name = f"shannon_entropy_results_bins_{results['bins']}_normalize_{results['normalised']}.csv"
@@ -156,24 +182,35 @@ if __name__ == '__main__':
                 f.write("dataset,mean_entropy,std_entropy,min_entropy,max_entropy\n")
 
             f.write(
-                f"{dataset_name},{results['mean_entropy']},{results['std_entropy']}, {results['min_entropy']},{results['max_entropy']}\n")
+                f"{dataset_name},{results['mean_entropy']},{results['std_entropy']}, {results['min_entropy']},{results['max_entropy']}\n"
+            )
 
         # Print summary
         print(f"\n{'=' * 50}")
         print("Shannon entropy summary for dataset:", dataset_name)
         print(f"{'=' * 50}")
         print(f"Total images processed: {results['total_images']}")
-        print(f"Mean entropy: {results['mean_entropy']:.4f} ± {results['std_entropy']:.4f}")
-        print(f"Entropy range: [{results['min_entropy']:.4f}, {results['max_entropy']:.4f}]")
+        print(
+            f"Mean entropy: {results['mean_entropy']:.4f} ± {results['std_entropy']:.4f}"
+        )
+        print(
+            f"Entropy range: [{results['min_entropy']:.4f}, {results['max_entropy']:.4f}]"
+        )
 
-        if 'per_class_stats' in results:
+        if "per_class_stats" in results:
             print(f"\nPer-class statistics:")
-            for class_label, stats in results['per_class_stats'].items():
-                print(f"  Class {class_label}: {stats['count']} images, "
-                      f"mean = {stats['mean']:.4f} ± {stats['std']:.4f}")
+            for class_label, stats in results["per_class_stats"].items():
+                print(
+                    f"  Class {class_label}: {stats['count']} images, "
+                    f"mean = {stats['mean']:.4f} ± {stats['std']:.4f}"
+                )
 
         # Per-class analysis
-        if 'per_class_stats' in results:
-            max_mean_class = max(results['per_class_stats'].items(),key=lambda x: x[1]['mean'])
-            print(f"Class with highest mean entropy: {max_mean_class[0]} "
-                  f"({max_mean_class[1]['mean']:.4f})")
+        if "per_class_stats" in results:
+            max_mean_class = max(
+                results["per_class_stats"].items(), key=lambda x: x[1]["mean"]
+            )
+            print(
+                f"Class with highest mean entropy: {max_mean_class[0]} "
+                f"({max_mean_class[1]['mean']:.4f})"
+            )

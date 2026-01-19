@@ -1,16 +1,16 @@
-import torch
-import numpy as np
-from torch.utils.data import DataLoader
-from collections import defaultdict
-import tqdm
 import os
+from collections import defaultdict
+
+import numpy as np
+import torch
+import tqdm
+from torch.utils.data import DataLoader
+
 from dataset.DataManager import DataManager
 
 
 def compute_edge_density_from_dataloader(
-    dataloader: DataLoader,
-    threshold: float = 0.1,
-    normalise: bool = True
+    dataloader: DataLoader, threshold: float = 0.1, normalise: bool = True
 ) -> dict:
     """
     Compute edge density for all images in a PyTorch DataLoader using Sobel filters.
@@ -46,19 +46,23 @@ def compute_edge_density_from_dataloader(
 
     # Sobel kernels
     sobel_x = torch.tensor(
-        [[-1, 0, 1],
-         [-2, 0, 2],
-         [-1, 0, 1]],
+        [
+            [-1, 0, 1],
+            [-2, 0, 2],
+            [-1, 0, 1],
+        ],
         dtype=torch.float32,
-        device=device
+        device=device,
     ).view(1, 1, 3, 3)
 
     sobel_y = torch.tensor(
-        [[-1, -2, -1],
-         [ 0,  0,  0],
-         [ 1,  2,  1]],
+        [
+            [-1, -2, -1],
+            [0, 0, 0],
+            [1, 2, 1],
+        ],
         dtype=torch.float32,
-        device=device
+        device=device,
     ).view(1, 1, 3, 3)
 
     with torch.no_grad():
@@ -76,11 +80,7 @@ def compute_edge_density_from_dataloader(
 
                 # Convert to grayscale
                 if image.shape[0] == 3:
-                    gray = (
-                        0.299 * image[0] +
-                        0.587 * image[1] +
-                        0.114 * image[2]
-                    )
+                    gray = 0.299 * image[0] + 0.587 * image[1] + 0.114 * image[2]
                 elif image.shape[0] == 1:
                     gray = image[0]
                 else:
@@ -97,7 +97,7 @@ def compute_edge_density_from_dataloader(
                 gx = torch.nn.functional.conv2d(gray, sobel_x, padding=1)
                 gy = torch.nn.functional.conv2d(gray, sobel_y, padding=1)
 
-                grad_mag = torch.sqrt(gx ** 2 + gy ** 2)
+                grad_mag = torch.sqrt(gx**2 + gy**2)
 
                 # Edge mask
                 edges = grad_mag > threshold
@@ -108,7 +108,9 @@ def compute_edge_density_from_dataloader(
                 edge_densities.append(density)
 
                 if labels is not None:
-                    label = labels[i].item() if torch.is_tensor(labels[i]) else labels[i]
+                    label = (
+                        labels[i].item() if torch.is_tensor(labels[i]) else labels[i]
+                    )
                     all_labels.append(label)
                     class_edge_densities[label].append(density)
 
@@ -123,7 +125,7 @@ def compute_edge_density_from_dataloader(
         "max_edge_density": float(np.max(edge_densities)),
         "threshold": threshold,
         "normalised": normalise,
-        "total_images": len(edge_densities)
+        "total_images": len(edge_densities),
     }
 
     if class_edge_densities:
@@ -135,7 +137,7 @@ def compute_edge_density_from_dataloader(
                 "std": float(np.std(d)),
                 "min": float(np.min(d)),
                 "max": float(np.max(d)),
-                "count": len(d)
+                "count": len(d),
             }
         results["per_class_stats"] = per_class_stats
 
@@ -143,29 +145,49 @@ def compute_edge_density_from_dataloader(
 
 
 if __name__ == "__main__":
-    exp_dict = {"mnist": 28, "fashion": 28, "cifar10": 32, "stl10": 96, "cxr8": 1024, "brain_tumor": 640, "eurosat_rgb": 64}
+    exp_dict = {
+        "mnist": 28,
+        "fashion": 28,
+        "cifar10": 32,
+        "stl10": 96,
+        "cxr8": 1024,
+        "brain_tumor": 640,
+        "eurosat_rgb": 64,
+    }
     # exp_dict = {"cifar10": 32}
     for dataset_name, pixel_size in exp_dict.items():
-        dm = DataManager(batch_size=100,seed=42,pixel_size=pixel_size,dataset=dataset_name)
+        dm = DataManager(
+            batch_size=100, seed=42, pixel_size=pixel_size, dataset=dataset_name
+        )
         train_loader, _, _ = dm.get_loaders(1, 0, 0)
 
-        results = compute_edge_density_from_dataloader(train_loader,threshold=0.1,normalize=True)
+        results = compute_edge_density_from_dataloader(
+            train_loader, threshold=0.1, normalize=True
+        )
 
         # Save results to CSV
         file_name = f"edge_density_results_threshold_{results['threshold']}_normalize_{results['normalised']}.csv"
         file_exists = os.path.isfile(file_name)
         with open(file_name, "w") as f:
             if not file_exists:
-                f.write("dataset,mean_edge_density,std_edge_density,min_edge_density,max_edge_density\n")
+                f.write(
+                    "dataset,mean_edge_density,std_edge_density,min_edge_density,max_edge_density\n"
+                )
 
-            f.write(f"{dataset_name},{results['mean_edge_density']},{results['std_edge_density']}, {results['min_edge_density']},{results['max_edge_density']}\n")
+            f.write(
+                f"{dataset_name},{results['mean_edge_density']},{results['std_edge_density']}, {results['min_edge_density']},{results['max_edge_density']}\n"
+            )
 
         print(f"\n{'=' * 50}")
         print("Edge density summary for dataset:", dataset_name)
         print(f"{'=' * 50}")
         print(f"Total images processed: {results['total_images']}")
-        print(f"Mean edge density: {results['mean_edge_density']:.4f} ± {results['std_edge_density']:.4f}")
-        print(f"Edge density range: [{results['min_edge_density']:.4f}, {results['max_edge_density']:.4f}]")
+        print(
+            f"Mean edge density: {results['mean_edge_density']:.4f} ± {results['std_edge_density']:.4f}"
+        )
+        print(
+            f"Edge density range: [{results['min_edge_density']:.4f}, {results['max_edge_density']:.4f}]"
+        )
 
         if "per_class_stats" in results:
             print("\nPer-class statistics:")
@@ -176,8 +198,7 @@ if __name__ == "__main__":
                 )
 
             max_class = max(
-                results["per_class_stats"].items(),
-                key=lambda x: x[1]["mean"]
+                results["per_class_stats"].items(), key=lambda x: x[1]["mean"]
             )
             print(
                 f"Class with highest mean edge density: "

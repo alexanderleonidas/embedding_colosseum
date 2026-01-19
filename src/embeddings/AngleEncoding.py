@@ -2,9 +2,9 @@ import pennylane as qml
 import torch
 
 device = (
-    torch.device("cuda") 
+    torch.device("cuda")
     if torch.cuda.is_available()
-    else torch.device("mps") 
+    else torch.device("mps")
     if torch.backends.mps.is_available()
     else torch.device("cpu")
 )
@@ -25,7 +25,9 @@ class AngleEncodingEmbedding:
         batch_mode = x.dim() == 2  # check for batching
 
         for i in range(self.num_qubits):
-            angle = x[:, i] if batch_mode else x[i]   # workaround around batching splitting the angle between the batches
+            angle = (
+                x[:, i] if batch_mode else x[i]
+            )  # workaround around batching splitting the angle between the batches
 
             if self.rotation == "RX":
                 qml.RX(angle, wires=i)

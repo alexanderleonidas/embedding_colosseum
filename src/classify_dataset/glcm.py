@@ -1,20 +1,21 @@
-import torch
-import numpy as np
-from torch.utils.data import DataLoader
 from collections import defaultdict
-import tqdm
 
+import numpy as np
+import torch
+import tqdm
 from skimage.feature import graycomatrix, graycoprops
+from torch.utils.data import DataLoader
+
 from dataset.DataManager import DataManager
 
 
 def compute_glcm_statistics_from_dataloader(
     dataloader: DataLoader,
     distances=(1,),
-    angles=(0, np.pi/4, np.pi/2, 3*np.pi/4),
+    angles=(0, np.pi / 4, np.pi / 2, 3 * np.pi / 4),
     levels=256,
     symmetric=True,
-    normed=True
+    normed=True,
 ) -> dict:
     """
     Compute GLCM statistics for all images in a DataLoader.
@@ -46,11 +47,7 @@ def compute_glcm_statistics_from_dataloader(
 
                 # Convert to grayscale
                 if image.shape[0] == 3:
-                    gray = (
-                        0.299 * image[0] +
-                        0.587 * image[1] +
-                        0.114 * image[2]
-                    )
+                    gray = 0.299 * image[0] + 0.587 * image[1] + 0.114 * image[2]
                 elif image.shape[0] == 1:
                     gray = image[0]
                 else:
@@ -70,7 +67,7 @@ def compute_glcm_statistics_from_dataloader(
                     angles=angles,
                     levels=levels,
                     symmetric=symmetric,
-                    normed=normed
+                    normed=normed,
                 )
 
                 # Compute statistics (averaged over distances & angles)
@@ -80,7 +77,7 @@ def compute_glcm_statistics_from_dataloader(
                     "homogeneity": np.mean(graycoprops(glcm, "homogeneity")),
                     "energy": np.mean(graycoprops(glcm, "energy")),
                     "correlation": np.mean(graycoprops(glcm, "correlation")),
-                    "ASM": np.mean(graycoprops(glcm, "ASM"))
+                    "ASM": np.mean(graycoprops(glcm, "ASM")),
                 }
 
                 for k, v in haralick_stats.items():
@@ -100,7 +97,7 @@ def compute_glcm_statistics_from_dataloader(
             "mean": float(np.mean(v)),
             "std": float(np.std(v)),
             "min": float(np.min(v)),
-            "max": float(np.max(v))
+            "max": float(np.max(v)),
         }
         for k, v in features.items()
     }
@@ -114,7 +111,7 @@ def compute_glcm_statistics_from_dataloader(
                 "std": float(np.std(v)),
                 "min": float(np.min(v)),
                 "max": float(np.max(v)),
-                "count": len(v)
+                "count": len(v),
             }
             for k, v in feats.items()
         }
@@ -128,8 +125,8 @@ def compute_glcm_statistics_from_dataloader(
             "angles": angles,
             "levels": levels,
             "symmetric": symmetric,
-            "normed": normed
-        }
+            "normed": normed,
+        },
     }
 
 
@@ -141,15 +138,12 @@ if __name__ == "__main__":
         "stl10": 96,
         "cxr8": 1024,
         "brain_tumor": 640,
-        "eurosat_rgb": 64
+        "eurosat_rgb": 64,
     }
 
     for dataset_name, pixel_size in exp_dict.items():
         dm = DataManager(
-            batch_size=64,
-            seed=42,
-            pixel_size=pixel_size,
-            dataset=dataset_name
+            batch_size=64, seed=42, pixel_size=pixel_size, dataset=dataset_name
         )
         # print(dm.root)
         train_loader, _, _ = dm.get_loaders(0.1, 0.1, 0.8)
@@ -161,7 +155,4 @@ if __name__ == "__main__":
         print(f"{'=' * 60}")
 
         for feature, stats in results["dataset_statistics"].items():
-            print(
-                f"{feature:15s} "
-                f"mean = {stats['mean']:.4f} ± {stats['std']:.4f}"
-            )
+            print(f"{feature:15s} mean = {stats['mean']:.4f} ± {stats['std']:.4f}")

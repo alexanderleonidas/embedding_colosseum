@@ -24,7 +24,7 @@ class FRQI:
     # to be used in the VQC
     def state_preparation(self, X: torch.Tensor):
         pixels = X
-        
+
         # Allow both single-sample (num_pixels,) and batched (B, num_pixels) inputs
         if pixels.dim() == 1:
             pixels = pixels.flatten()

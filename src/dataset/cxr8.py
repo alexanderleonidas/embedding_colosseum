@@ -1,5 +1,5 @@
-import os
 import logging
+import os
 
 import pandas as pd
 from PIL import Image
@@ -28,8 +28,8 @@ class CXR8(Dataset):
 
 
 def extract_chest_xray_dataset(root):
-    data_folder = os.path.join(root, 'CXR8', 'images')
-    csv_path = os.path.join(root,'CXR8','Data_Entry_2017_v2020.csv')
+    data_folder = os.path.join(root, "CXR8", "images")
+    csv_path = os.path.join(root, "CXR8", "Data_Entry_2017_v2020.csv")
     class_to_label = {
         "No Finding": 0,
         "Infiltration": 1,
@@ -67,17 +67,7 @@ def extract_chest_xray_dataset(root):
     # lookup first label via dict (O(1) per file)
     first_labels = [mapping.get(f, "").split("|")[0] for f in files]
 
-
     labels = [class_to_label.get(lbl, -1) for lbl in first_labels]
-
-    # print(f"\nTotal Images: {len(img_paths)}")
-    # if binary:
-    #     print(f"Classes: ['No Finding' (0), 'Finding' (1)]")
-    #     print(f"No Finding: {labels.count(0)} images ({labels.count(0) / len(labels) * 100:.1f}%)")
-    #     print(f"Finding: {labels.count(1)} images ({labels.count(1) / len(labels) * 100:.1f}%)")
-    # else:
-    #     for i in range(len(classes)):
-    #         print(f"{classes[i]}: {labels.count(i)} images ({labels.count(i) / len(labels) * 100:.1f}%)")
     return img_paths, labels
 
 

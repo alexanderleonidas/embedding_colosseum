@@ -74,5 +74,6 @@ class HomomorphicFilter:
         # 5. Reverse log transform and normalize output
         filtered_img = torch.expm1(filtered_log)
         # Normalize the output to be in the range [0, 1] for a valid image representation.
-        return (filtered_img - filtered_img.min()) / (filtered_img.max() - filtered_img.min() + 1e-8)
-
+        return (filtered_img - filtered_img.min()) / (
+            filtered_img.max() - filtered_img.min() + 1e-8
+        )

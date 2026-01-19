@@ -7,22 +7,6 @@ from torchvision import datasets, transforms
 
 from src.dataset.DataManager import DataManager
 
-# batch_size = 256
-#
-# transform = transforms.Compose([
-#     transforms.ToTensor(),
-#     transforms.Lambda(lambda x: x.view(-1))  # flatten 28×28 → 784
-# ])
-#
-# train_dataset = datasets.MNIST(root="./data", train=True, download=True, transform=transform)
-# test_dataset = datasets.MNIST(root="./data", train=False, download=True, transform=transform)
-#
-# train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-# test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
-# print(train_loader)
-# print(test_loader)
-# print(train_dataset[0][0].shape)
-
 
 def normalize_to_angles(X):  # normalizes from [0,1] to [0, π]
     X = (X - X.min()) / (X.max() - X.min() + 1e-8)

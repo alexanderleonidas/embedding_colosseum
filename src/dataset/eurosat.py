@@ -36,7 +36,8 @@ class EUROSAT(Dataset):
         return arr
 
     def _read_tif(self, path: str) -> Union[np.ndarray, Image.Image]:
-        arr = tifffile.imread(path)  # possible shapes: (bands,H,W) or (H,W,bands) or (H,W)
+        arr = tifffile.imread(path)
+        # possible shapes: (bands,H,W) or (H,W,bands) or (H,W)
         # Normalize shapes: if (bands, H, W) -> (H, W, bands)
         if arr.ndim == 3 and arr.shape[0] <= 32 and arr.shape[0] > arr.shape[-1]:
             arr = np.transpose(arr, (1, 2, 0))
