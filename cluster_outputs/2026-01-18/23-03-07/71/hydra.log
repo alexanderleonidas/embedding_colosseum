@@ -1,0 +1,38 @@
+[2026-01-19 04:31:33,850] [INFO] - seed: 0
+image_preprocessing: GaussianBlur
+training:
+  epochs: 1
+  batch_size: 100
+  image_width: 16
+  lr: 0.05
+model:
+  num_layers: 3
+dataset:
+  num_classes: 2
+  binary: true
+  name: mnist
+  image_width_sweep: 16,32
+  orig_width: 28
+embedding:
+  name: NAQSS
+  pca: false
+  supports_color: false
+
+[2026-01-19 04:31:33,852] [INFO] - Using cuda.
+[2026-01-19 04:31:34,938] [INFO] - Dataset: mnist | Train Size: 10346 | Validation Size: 2956 | Test Size: 1478
+[2026-01-19 04:31:34,940] [INFO] - Initiate model
+[2026-01-19 04:31:34,942] [INFO] - Weights Shape: torch.Size([3, 17, 3])
+[2026-01-19 04:31:34,943] [INFO] - Bias Shape: torch.Size([2])
+[2026-01-19 04:51:24,215] [INFO] - [  100/10346] | Cost: 0.6921216 | Accuracy: 0.6200000
+[2026-01-19 05:11:25,148] [INFO] - [  200/10346] | Cost: 0.6888397 | Accuracy: 0.5200000
+[2026-01-19 05:31:23,947] [INFO] - [  300/10346] | Cost: 0.6904743 | Accuracy: 0.4900000
+[2026-01-19 05:51:21,452] [INFO] - [  400/10346] | Cost: 0.6818025 | Accuracy: 0.5300000
+[2026-01-19 06:11:04,845] [INFO] - [  500/10346] | Cost: 0.6782601 | Accuracy: 0.5300000
+[2026-01-19 06:31:19,142] [INFO] - [  600/10346] | Cost: 0.6793401 | Accuracy: 0.4100000
+[2026-01-19 06:51:16,148] [INFO] - [  700/10346] | Cost: 0.6625285 | Accuracy: 0.9900000
+[2026-01-19 07:11:14,333] [INFO] - [  800/10346] | Cost: 0.6562707 | Accuracy: 0.9400000
+[2026-01-19 07:30:25,043] [INFO] - [  900/10346] | Cost: 0.6452335 | Accuracy: 0.9700000
+[2026-01-19 07:49:11,316] [INFO] - [ 1000/10346] | Cost: 0.6394529 | Accuracy: 0.9000000
+[2026-01-19 08:07:30,834] [INFO] - [ 1100/10346] | Cost: 0.6371770 | Accuracy: 0.8000000
+[2026-01-19 08:26:05,342] [INFO] - [ 1200/10346] | Cost: 0.6194504 | Accuracy: 0.7200000
+[2026-01-19 08:44:32,557] [INFO] - [ 1300/10346] | Cost: 0.6150182 | Accuracy: 0.7700000

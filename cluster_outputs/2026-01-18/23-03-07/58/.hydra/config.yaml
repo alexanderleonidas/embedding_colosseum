@@ -1,0 +1,19 @@
+seed: 0
+image_preprocessing: None
+training:
+  epochs: 1
+  batch_size: 100
+  image_width: 8
+  lr: 0.05
+model:
+  num_layers: 3
+dataset:
+  num_classes: 2
+  binary: true
+  name: mnist
+  image_width_sweep: 16,32
+  orig_width: 28
+embedding:
+  name: OQIM
+  pca: false
+  supports_color: true

@@ -1,0 +1,7 @@
+- dataset=cifar10
+- seed=0
+- image_preprocessing=MedianBlur
+- embedding=NAQSS
+- training.image_width=32
+- training.batch_size=100
+- +experiment=three

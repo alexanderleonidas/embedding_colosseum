@@ -1,0 +1,7 @@
+- dataset=cxr8
+- seed=0
+- image_preprocessing=ContrastScaling
+- embedding=NAQSS
+- training.image_width=4
+- training.batch_size=100
+- +experiment=four

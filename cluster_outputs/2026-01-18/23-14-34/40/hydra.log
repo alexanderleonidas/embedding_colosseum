@@ -1,0 +1,32 @@
+[2026-01-19 07:29:40,533] [INFO] - seed: 0
+image_preprocessing: GaussianBlur
+training:
+  epochs: 1
+  batch_size: 100
+  image_width: 32
+  lr: 0.05
+model:
+  num_layers: 3
+dataset:
+  num_classes: 2
+  binary: true
+  name: fashion
+  image_width_sweep: 16,32
+  orig_width: 28
+embedding:
+  name: OQIM
+  pca: false
+  supports_color: true
+
+[2026-01-19 07:29:40,535] [INFO] - Using cuda.
+[2026-01-19 07:29:41,545] [INFO] - Dataset: fashion | Train Size: 9800 | Validation Size: 2800 | Test Size: 1400
+[2026-01-19 07:29:41,548] [INFO] - Initiate model
+[2026-01-19 07:29:41,551] [INFO] - Weights Shape: torch.Size([3, 12, 3])
+[2026-01-19 07:29:41,552] [INFO] - Bias Shape: torch.Size([2])
+[2026-01-19 07:40:49,448] [INFO] - [  100/ 9800] | Cost: 0.6922495 | Accuracy: 0.5600000
+[2026-01-19 07:52:04,756] [INFO] - [  200/ 9800] | Cost: 0.6750685 | Accuracy: 0.6100000
+[2026-01-19 08:03:22,415] [INFO] - [  300/ 9800] | Cost: 0.7096050 | Accuracy: 0.5000000
+[2026-01-19 08:14:56,445] [INFO] - [  400/ 9800] | Cost: 0.7379094 | Accuracy: 0.4100000
+[2026-01-19 08:26:03,850] [INFO] - [  500/ 9800] | Cost: 0.7031250 | Accuracy: 0.4800000
+[2026-01-19 08:37:47,143] [INFO] - [  600/ 9800] | Cost: 0.6947451 | Accuracy: 0.4800000
+[2026-01-19 08:49:27,959] [INFO] - [  700/ 9800] | Cost: 0.6894047 | Accuracy: 0.4800000

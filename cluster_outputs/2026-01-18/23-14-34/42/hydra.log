@@ -1,0 +1,29 @@
+[2026-01-19 07:39:28,251] [INFO] - seed: 0
+image_preprocessing: ContrastScaling
+training:
+  epochs: 1
+  batch_size: 100
+  image_width: 32
+  lr: 0.05
+model:
+  num_layers: 3
+dataset:
+  num_classes: 2
+  binary: true
+  name: fashion
+  image_width_sweep: 16,32
+  orig_width: 28
+embedding:
+  name: NEQR
+  pca: false
+  supports_color: true
+
+[2026-01-19 07:39:28,254] [INFO] - Using cuda.
+[2026-01-19 07:39:29,251] [INFO] - Dataset: fashion | Train Size: 9800 | Validation Size: 2800 | Test Size: 1400
+[2026-01-19 07:39:29,254] [INFO] - Initiate model
+[2026-01-19 07:39:29,257] [INFO] - Weights Shape: torch.Size([3, 18, 3])
+[2026-01-19 07:39:29,258] [INFO] - Bias Shape: torch.Size([2])
+[2026-01-19 07:56:47,221] [INFO] - [  100/ 9800] | Cost: 0.6946302 | Accuracy: 0.4400000
+[2026-01-19 08:14:22,238] [INFO] - [  200/ 9800] | Cost: 0.6833014 | Accuracy: 0.6100000
+[2026-01-19 08:31:54,653] [INFO] - [  300/ 9800] | Cost: 0.6970566 | Accuracy: 0.5000000
+[2026-01-19 08:49:35,949] [INFO] - [  400/ 9800] | Cost: 0.7209877 | Accuracy: 0.4100000

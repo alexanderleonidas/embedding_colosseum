@@ -1,0 +1,40 @@
+[2026-01-19 04:14:55,418] [INFO] - seed: 0
+image_preprocessing: None
+training:
+  epochs: 1
+  batch_size: 100
+  image_width: 32
+  lr: 0.05
+model:
+  num_layers: 3
+dataset:
+  num_classes: 2
+  binary: true
+  name: fashion
+  image_width_sweep: 16,32
+  orig_width: 28
+embedding:
+  name: NEQR
+  pca: false
+  supports_color: true
+
+[2026-01-19 04:14:55,420] [INFO] - Using cuda.
+[2026-01-19 04:14:56,852] [INFO] - Dataset: fashion | Train Size: 9800 | Validation Size: 2800 | Test Size: 1400
+[2026-01-19 04:14:56,855] [INFO] - Initiate model
+[2026-01-19 04:14:56,918] [INFO] - Weights Shape: torch.Size([3, 18, 3])
+[2026-01-19 04:14:56,920] [INFO] - Bias Shape: torch.Size([2])
+[2026-01-19 04:33:41,052] [INFO] - [  100/ 9800] | Cost: 0.6945629 | Accuracy: 0.4400000
+[2026-01-19 04:52:55,845] [INFO] - [  200/ 9800] | Cost: 0.6833975 | Accuracy: 0.6100000
+[2026-01-19 05:12:54,032] [INFO] - [  300/ 9800] | Cost: 0.6971942 | Accuracy: 0.5000000
+[2026-01-19 05:32:25,715] [INFO] - [  400/ 9800] | Cost: 0.7211198 | Accuracy: 0.4100000
+[2026-01-19 05:52:03,747] [INFO] - [  500/ 9800] | Cost: 0.7017484 | Accuracy: 0.4800000
+[2026-01-19 06:11:24,349] [INFO] - [  600/ 9800] | Cost: 0.6985596 | Accuracy: 0.4800000
+[2026-01-19 06:30:52,816] [INFO] - [  700/ 9800] | Cost: 0.6949095 | Accuracy: 0.4800000
+[2026-01-19 06:50:06,716] [INFO] - [  800/ 9800] | Cost: 0.6849350 | Accuracy: 0.5600000
+[2026-01-19 07:09:50,515] [INFO] - [  900/ 9800] | Cost: 0.6897295 | Accuracy: 0.4400000
+[2026-01-19 07:28:33,715] [INFO] - [ 1000/ 9800] | Cost: 0.6843482 | Accuracy: 0.9400000
+[2026-01-19 07:46:32,616] [INFO] - [ 1100/ 9800] | Cost: 0.6827179 | Accuracy: 0.5600000
+[2026-01-19 08:04:26,857] [INFO] - [ 1200/ 9800] | Cost: 0.6673077 | Accuracy: 0.6800000
+[2026-01-19 08:22:13,857] [INFO] - [ 1300/ 9800] | Cost: 0.6717713 | Accuracy: 0.5000000
+[2026-01-19 08:39:58,140] [INFO] - [ 1400/ 9800] | Cost: 0.6683393 | Accuracy: 0.4700000
+[2026-01-19 08:57:17,416] [INFO] - [ 1500/ 9800] | Cost: 0.6512203 | Accuracy: 0.5400000

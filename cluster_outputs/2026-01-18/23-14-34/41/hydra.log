@@ -1,0 +1,26 @@
+[2026-01-19 07:32:52,716] [INFO] - seed: 0
+image_preprocessing: GaussianBlur
+training:
+  epochs: 1
+  batch_size: 100
+  image_width: 32
+  lr: 0.05
+model:
+  num_layers: 3
+dataset:
+  num_classes: 2
+  binary: true
+  name: fashion
+  image_width_sweep: 16,32
+  orig_width: 28
+embedding:
+  name: NAQSS
+  pca: false
+  supports_color: false
+
+[2026-01-19 07:32:52,719] [INFO] - Using cuda.
+[2026-01-19 07:32:53,749] [INFO] - Dataset: fashion | Train Size: 9800 | Validation Size: 2800 | Test Size: 1400
+[2026-01-19 07:32:53,753] [INFO] - Initiate model
+[2026-01-19 07:32:53,756] [INFO] - Weights Shape: torch.Size([3, 19, 3])
+[2026-01-19 07:32:53,757] [INFO] - Bias Shape: torch.Size([2])
+[2026-01-19 08:26:29,442] [INFO] - [  100/ 9800] | Cost: 0.6924158 | Accuracy: 0.7000000

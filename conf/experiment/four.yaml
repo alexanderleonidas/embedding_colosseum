@@ -1,0 +1,20 @@
+# @package _global_
+
+# Define the parameters to sweep over
+hydra:
+  launcher:
+    n_jobs: -1 # -1 to use all CPU cores
+  mode: MULTIRUN
+  sweeper:
+    params:
+      dataset: cxr8, mnist, fashion, eurosat_rgb, eurosat_ms, cifar10, stl10 # Exclude the braintumor -> cuda_error
+      # Done: cifar10
+      seed: 0 #, 1 First get at least one run to get something..
+      image_preprocessing: None, GaussianBlur, ContrastScaling, MedianBlur, BilateralFilter, HomomorphicFilter
+      embedding: NEQR, OQIM, NAQSS #, ZZFeatureMap, AngleEncoding, RMP   
+      # Do not create multiple runs for pca based methods -> split into different experiment
+      training.image_width: 32
+      training.batch_size: 100
+
+# Execute with:
+# uv run main.py +experiment=filename

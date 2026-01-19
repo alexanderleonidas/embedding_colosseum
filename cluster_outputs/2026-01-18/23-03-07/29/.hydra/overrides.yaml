@@ -1,0 +1,7 @@
+- dataset=cxr8
+- seed=0
+- image_preprocessing=MedianBlur
+- embedding=NEQR
+- training.image_width=16
+- training.batch_size=100
+- +experiment=four

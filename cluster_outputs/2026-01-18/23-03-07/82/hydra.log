@@ -1,0 +1,43 @@
+[2026-01-19 06:30:38,523] [INFO] - seed: 0
+image_preprocessing: MedianBlur
+training:
+  epochs: 1
+  batch_size: 100
+  image_width: 8
+  lr: 0.05
+model:
+  num_layers: 3
+dataset:
+  num_classes: 2
+  binary: true
+  name: mnist
+  image_width_sweep: 16,32
+  orig_width: 28
+embedding:
+  name: NEQR
+  pca: false
+  supports_color: true
+
+[2026-01-19 06:30:38,525] [INFO] - Using cuda.
+[2026-01-19 06:30:39,517] [INFO] - Dataset: mnist | Train Size: 10346 | Validation Size: 2956 | Test Size: 1478
+[2026-01-19 06:30:39,520] [INFO] - Initiate model
+[2026-01-19 06:30:39,522] [INFO] - Weights Shape: torch.Size([3, 14, 3])
+[2026-01-19 06:30:39,523] [INFO] - Bias Shape: torch.Size([2])
+[2026-01-19 06:39:07,844] [INFO] - [  100/10346] | Cost: 0.6975438 | Accuracy: 0.3100000
+[2026-01-19 06:47:47,638] [INFO] - [  200/10346] | Cost: 0.6906103 | Accuracy: 0.5200000
+[2026-01-19 06:56:28,515] [INFO] - [  300/10346] | Cost: 0.6907688 | Accuracy: 0.4900000
+[2026-01-19 07:04:59,852] [INFO] - [  400/10346] | Cost: 0.6802071 | Accuracy: 0.5300000
+[2026-01-19 07:13:17,043] [INFO] - [  500/10346] | Cost: 0.6763463 | Accuracy: 0.5300000
+[2026-01-19 07:21:38,355] [INFO] - [  600/10346] | Cost: 0.6793888 | Accuracy: 0.4600000
+[2026-01-19 07:29:54,746] [INFO] - [  700/10346] | Cost: 0.6645173 | Accuracy: 0.9100000
+[2026-01-19 07:37:41,152] [INFO] - [  800/10346] | Cost: 0.6572895 | Accuracy: 0.9300000
+[2026-01-19 07:46:06,147] [INFO] - [  900/10346] | Cost: 0.6546236 | Accuracy: 0.9200000
+[2026-01-19 07:53:51,321] [INFO] - [ 1000/10346] | Cost: 0.6511946 | Accuracy: 0.7700000
+[2026-01-19 08:02:03,216] [INFO] - [ 1100/10346] | Cost: 0.6541950 | Accuracy: 0.6100000
+[2026-01-19 08:09:51,450] [INFO] - [ 1200/10346] | Cost: 0.6425192 | Accuracy: 0.5900000
+[2026-01-19 08:17:56,953] [INFO] - [ 1300/10346] | Cost: 0.6424026 | Accuracy: 0.5400000
+[2026-01-19 08:25:53,446] [INFO] - [ 1400/10346] | Cost: 0.6169394 | Accuracy: 0.6300000
+[2026-01-19 08:33:49,057] [INFO] - [ 1500/10346] | Cost: 0.6307214 | Accuracy: 0.5500000
+[2026-01-19 08:41:38,249] [INFO] - [ 1600/10346] | Cost: 0.5897875 | Accuracy: 0.6700000
+[2026-01-19 08:49:37,350] [INFO] - [ 1700/10346] | Cost: 0.6114309 | Accuracy: 0.5800000
+[2026-01-19 08:57:40,459] [INFO] - [ 1800/10346] | Cost: 0.6134237 | Accuracy: 0.5900000
