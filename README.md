@@ -15,7 +15,7 @@ We use [Hydra.cc](https://hydra.cc/) as a framework to define our experiments an
 ```
 embedding_colosseum/
 ├── conf/                    # Hydra configurations
-├── src/                     # Source code
+├── src/
 │   ├── classify_dataset/    # Feature extraction utilities
 │   ├── dataset/             # Data loading and management
 │   ├── embeddings/          # Quantum embedding implementations
@@ -23,10 +23,11 @@ embedding_colosseum/
 │   ├── preprocessing/       # Dataset preprocessing
 │   ├── training/            # Training pipeline
 │   └── utils/               # Logging and metric saving
-├── cluster_outputs/         # Cluster run results (generated)
-├── prelim_results/          # Preliminary analysis results
-├── old/                     # Archived code
+├── results/
+│   ├── final/               # Results of final experiments
+│   └── preliminary/         # Preliminary analysis results
 ├── main.py                  # Main entry point
+├── ...
 └── pyproject.toml           # Project dependencies
 ```
 
