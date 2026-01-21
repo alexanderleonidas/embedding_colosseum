@@ -20,7 +20,7 @@ class DatasetFingerprinter:
     def extract_fingerprint(
         self, dataloader: DataLoader, dataset_name: str, n_samples: int = 1000
     ) -> Dict[str, Any]:
-        """Extract comprehensive fingerprint with multiple statistics"""
+        """Extract a comprehensive fingerprint with multiple statistics"""
         all_latents = []
 
         with torch.no_grad():

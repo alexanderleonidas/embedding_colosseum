@@ -29,7 +29,7 @@ class CXR8(Dataset):
 
 def extract_chest_xray_dataset(root, all_folders=False):
     data_folder1 = os.path.join(root, 'CXR8', 'images')
-    data_folder2 = os.path.join(root, 'CXR8', 'images')
+    data_folder2 = os.path.join(root, 'CXR8', 'images2')
     csv_path = os.path.join(root,'CXR8','Data_Entry_2017_v2020.csv')
     class_to_label = {
         "No Finding": 0,
