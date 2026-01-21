@@ -1,8 +1,3 @@
-"""
-This code is inspired from https://github.com/pi-tau/vae
-"""
-
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
