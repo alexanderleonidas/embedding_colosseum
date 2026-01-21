@@ -1,9 +1,0 @@
-seed: 0
-embedding: FRQI
-model:
-  __target__: src.model.VariationalClassifier.VariationalClassifier
-  num_layers: 3
-training:
-  epochs: 2
-  batch_size: 100
-  image_width: 4
