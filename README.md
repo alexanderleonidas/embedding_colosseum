@@ -23,9 +23,7 @@ embedding_colosseum/
 │   ├── preprocessing/       # Dataset preprocessing
 │   ├── training/            # Training pipeline
 │   └── utils/               # Logging and metric saving
-├── results/
-│   ├── final/               # Results of final experiments
-│   └── preliminary/         # Preliminary analysis results
+├── results/                 # Results of final experiments
 ├── main.py                  # Main entry point
 ├── ...
 └── pyproject.toml           # Project dependencies
