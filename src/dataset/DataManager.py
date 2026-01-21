@@ -1,6 +1,7 @@
 import os
-
+import random
 import torch
+from PIL import Image
 from torch.utils.data import ConcatDataset, DataLoader, Dataset, Subset, random_split
 from torchvision import datasets, transforms
 
@@ -64,6 +65,8 @@ class DataManager:
 
             if not cfg.embedding.supports_color:
                 tf_list.append(transforms.Grayscale(num_output_channels=1))
+        elif cfg is None and pixel_size is not None:
+            tf_list += [transforms.Resize((pixel_size, pixel_size))]
 
         if transform is None or transform == "None":
             pass
@@ -146,7 +149,7 @@ class DataManager:
             all_data = ConcatDataset([full_train, test_ds])
 
         elif dataset == "cxr8":
-            img_paths, labels = extract_chest_xray_dataset(self.root)
+            img_paths, labels = extract_chest_xray_dataset(self.root, all_folders=True)
             all_data = CXR8(img_paths, labels, transform=self.transform)
         elif dataset == "brain_tumor":
             img_paths, labels = extract_brain_tumor_dataset(self.root)
@@ -187,21 +190,37 @@ class DataManager:
                 labels = dataset.y
 
             if labels is not None:
-                # Normalize to a Python list for fast iteration
+                # Normalise to a Python list for fast iteration
                 try:
                     labels = list(labels)
                 except Exception:
                     labels = [int(l) for l in labels]
-                self.indices = [
-                    i for i, y in enumerate(labels) if y == class_a or y == class_b
-                ]
+
+                # Get indices for both classes
+                indices_a = [i for i, y in enumerate(labels) if y == class_a]
+                indices_b = [i for i, y in enumerate(labels) if y == class_b]
             else:
                 # Fallback: single pass that calls __getitem__ (slower)
-                self.indices = [
-                    i
-                    for i in range(len(dataset))
-                    if (dataset[i][1] == class_a or dataset[i][1] == class_b)
-                ]
+                indices_a = []
+                indices_b = []
+                for i in range(len(dataset)):
+                    x, y = dataset[i]
+                    if y == class_a:
+                        indices_a.append(i)
+                    elif y == class_b:
+                        indices_b.append(i)
+
+            # Balance the dataset by taking the minimum number of samples
+            min_samples = min(len(indices_a), len(indices_b))
+
+            # Randomly sample from both classes
+            random.shuffle(indices_a)
+            random.shuffle(indices_b)
+
+            self.indices = indices_a[:min_samples] + indices_b[:min_samples]
+
+            # Shuffle the combined indices
+            random.shuffle(self.indices)
 
         def __len__(self):
             return len(self.indices)
@@ -212,10 +231,10 @@ class DataManager:
             return x, y
 
     def make_binary_dataset(
-        self, dataset, class_a, class_b, negative_label=0, positive_label=1
+            self, dataset, class_a, class_b, negative_label=0, positive_label=1
     ):
         """
-        Convert ANY dataset (including ConcatDataset) into a binary dataset.
+        Convert ANY dataset (including ConcatDataset) into a balanced binary dataset.
         Uses dataset attributes like `targets` or `labels` when available to avoid
         expensive per-item __getitem__ calls.
         """
@@ -233,14 +252,33 @@ class DataManager:
             dataset, class_a, class_b, negative_label, positive_label
         )
 
+    def get_dataset(self, num_points: int = None):
+        """
+        Get the dataset, optionally returning a random subset of `num_points`
+        sampled without replacement (reproducible using the manager's generator).
+        """
+        if num_points is None:
+            return self._data
+
+        total = len(self._data)
+        if num_points <= 0:
+            raise ValueError("num_points must be a positive integer")
+        if num_points > total:
+            raise ValueError(f"num_points ({num_points}) greater than dataset size ({total})")
+
+        indices = torch.randperm(total, generator=self.generator)[:num_points].tolist()
+        return Subset(self._data, indices)
+
     def get_loaders(self, train_split: float, val_split: float, test_split: float):
         """
         Prepare DataLoaders for training and testing datasets.
 
-        :param train_split: Proportion of training data.
-        :param val_split: Proportion of validation data.
-        :param test_split: Proportion of test data.
-        :return: Tuple of (train_loader, val_loader, test_loader)
+        Args:
+            train_split: Proportion of training data.
+            val_split: Proportion of validation data.
+            test_split: Proportion of test data.
+        Returns:
+            Tuple of (train_loader, val_loader, test_loader)
         """
         if (
             val_split < 0
@@ -284,24 +322,55 @@ class DataManager:
 
 # Example usage
 if __name__ == "__main__":
-    dm = DataManager(
-        cfg=None,
-        batch_size=100,
-        seed=42,
-        dataset="cxr8",
-        pixel_size=640,
-        make_binary=True,
-    )
-    print(dm.root)
-    train, val, test = dm.get_loaders(0.8, 0.1, 0.1)
-    print(
-        f"Train loader length: {len(train)}, Val loader length: {len(val)}, Test loader length: {len(test)}"
-    )
-    # img, label = train.dataset[0]
-    # print(img.size)
-    # print(label)
-    for img, label in train:
-        print(img.size())
-        print(label)
-        break
-    # img.show()
+    #
+    dataset_names = ["mnist", "fashion", "cifar10", "stl10", "cxr8", "brain_tumor", "eurosat_rgb"]
+    all_datasets = {}
+    for d in dataset_names:
+        dm = DataManager(cfg=None, batch_size=100, seed=42, pixel_size=128, dataset=d)
+        print(len(dm.get_dataset()))
+
+    # sizes = set()
+    # modes = set()
+    # channels = set()
+    # for d in train_loader:
+    #     for img in d:
+    #         with Image.open(d) as im:
+    #             sizes.add(im.size)
+    #             modes.add(im.mode)
+    #             channels.add(len(im.getbands()))
+
+            # if len(im.getbands()) == 4:
+            #     print(f"RGB image found: {p}")
+            #     img = Image.open(p).convert("RGB")
+            #     img.show()
+            #     break
+
+    # print("Sizes:", sizes)
+    # print("Modes:", modes)
+    # print("Channels (counts):", channels)
+
+
+
+
+    # dm = DataManager(
+    #     cfg=None,
+    #     batch_size=100,
+    #     seed=42,
+    #     dataset="cxr8",
+    #     pixel_size=640,
+    #     make_binary=True,
+    # )
+    # print(dm.root)
+    # train, val, test = dm.get_loaders(0.8, 0.1, 0.1)
+    # print(train.batch_size)
+    # print(
+    #     f"Train loader length: {len(train)}, Val loader length: {len(val)}, Test loader length: {len(test)}"
+    # )
+    # # img, label = train.dataset[0]
+    # # print(img.size)
+    # # print(label)
+    # for img, label in train:
+    #     print(img.size())
+    #     print(label)
+    #     break
+

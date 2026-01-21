@@ -21,4 +21,6 @@ dependencies = [
     "tifffile>=2026.1.14",
     "torch>=2.9.0",
     "torchvision>=0.24.0",
+    "tqdm>=4.67.1",
+    "scikit-image>=0.26.0",
 ]

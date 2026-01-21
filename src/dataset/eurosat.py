@@ -120,6 +120,7 @@ def extract_eurosat_dataset(root, rgb=True):
 
 if __name__ == "__main__":
     img_paths, labels = extract_eurosat_dataset(root="./data", rgb=False)
+    print(len(img_paths))
     print(img_paths[:5])
     print(labels[:5])
     dataset = EUROSAT(img_paths, labels, transform=transforms.ToTensor())

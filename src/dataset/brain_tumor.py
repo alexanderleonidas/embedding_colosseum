@@ -3,7 +3,7 @@ import os
 from PIL import Image
 from torch.utils.data import Dataset
 
-# The default size of the pictures in this dataset is 640x640 pixels
+# The pictures in this dataset come in 640x640 pixels and 512x512 pixels.
 
 
 class BRAINTUMOR(Dataset):
@@ -31,7 +31,7 @@ def extract_brain_tumor_dataset(root):
 
     img_paths = []
     labels = []
-    class_to_label = {"Healthy": 1, "Tumor": -1}
+    class_to_label = {"Healthy": 0, "Tumor": 1}
     if os.path.isdir(ct_directory) and os.path.isdir(mri_directory):
         for class_name in classes:
             ct_class_path = os.path.join(ct_directory, class_name)
@@ -53,16 +53,33 @@ def extract_brain_tumor_dataset(root):
                 for mri_img_name in mri_img_files:
                     img_paths.append(os.path.join(mri_class_path, mri_img_name))
                     labels.append(class_to_label[class_name])
-    return img_paths, labels
 
+    # print(f"\nTotal Images: {len(img_paths)}")
+    # print(f"Tumor (yes): {labels.count(1)} images ({labels.count(1) / len(labels) * 100:.1f}%)")
+    # print(f"No Tumor (no): {labels.count(0)} images ({labels.count(0) / len(labels) * 100:.1f}%)")
+    return img_paths, labels
 
 # Example usage
 if __name__ == "__main__":
     img_paths, labels = extract_brain_tumor_dataset(root="./data")
     print(len(img_paths))
     print(img_paths[:5])
-    print(labels[:5])
-    img = Image.open(img_paths[100])
-    print(img.size)
+    # print(labels[:5])
+    # imgs = [Image.open(img) for img in img_paths]
+    # sizes = [img.size for img in imgs]
+    # print(sizes[:5])
     # img = transforms.ToPILImage()(img)
     # img.show()
+
+    sizes = set()
+    modes = set()
+    channels = set()
+    for p in img_paths:
+        with Image.open(p) as im:
+            sizes.add(im.size)
+            modes.add(im.mode)
+            channels.add(len(im.getbands()))
+
+    print("Sizes:", sizes)
+    print("Modes:", modes)
+    print("Channels (counts):", channels)
