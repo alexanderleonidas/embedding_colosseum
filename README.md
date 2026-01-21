@@ -31,13 +31,16 @@ embedding_colosseum/
 
 ## Supported Datasets
 
-Downloaded automatically:
+Downloaded automatically using PyTorch:
 - MNIST, Fashion-MNIST, CIFAR-10, STL-10
 
 Theses datasets need to be downloaded separately:
-- EuroSAT (RGB and Multispectral)
-- Brain Tumor
-- CXR8 (Chest X-Ray)
+- [EuroSAT (RGB and Multispectral)](https://zenodo.org/records/7711810#.ZAm3k-zMKEA)
+- [Brain Tumor](https://www.kaggle.com/datasets/murtozalikhon/brain-tumor-multimodal-image-ct-and-mri?resource=download)
+- [CXR8 (Chest X-Ray)](https://huggingface.co/datasets/alkzar90/NIH-Chest-X-ray-dataset) (We only used the `images_001.zip`
+file together with `Data_Entry_2017_v2020.csv`)
+
+To add the dataset unzip them into the dir `src/dataset/data` with the dir names `EuroSAT`, `BRAINTUMOR` and `CXR8`. For any issues refer to the DataManager implementation and the corresponding dataset scripts.
 
 ## Embedding Strategies
 We plan to use the following embedding strategies in our project:

@@ -85,7 +85,7 @@ def extract_eurosat_dataset(root, rgb=True):
     if rgb:
         data_folder = os.path.join(data_folder, "EuroSAT_RGB")
     else:
-        data_folder = os.path.join(data_folder, "EuroSAT_geo")
+        data_folder = os.path.join(data_folder, "EuroSAT_MS")
     classes = [
         "AnnualCrop",
         "Forest",
