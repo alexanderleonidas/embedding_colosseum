@@ -1,25 +1,25 @@
-from matplotlib import pyplot as plt
-from sklearn.manifold import TSNE
+from typing import Any, Dict, Optional
 
-from vae import UniversalVAE
 import numpy as np
 import torch
+from matplotlib import pyplot as plt
+from sklearn.manifold import TSNE
 from torch.utils.data import DataLoader
-from typing import Dict, Any, Optional
+from vae import UniversalVAE
+
 
 class DatasetFingerprinter:
     """Enhanced fingerprint extraction with more metrics"""
 
-    def __init__(self, vae: UniversalVAE, device: torch.device = torch.device('cpu')):
+    def __init__(self, vae: UniversalVAE, device: torch.device = torch.device("cpu")):
         self.vae = vae
         self.device = device
         self.vae.to(device)
         self.vae.eval()
 
-    def extract_fingerprint(self,
-                            dataloader: DataLoader,
-                            dataset_name: str,
-                            n_samples: int = 1000) -> Dict[str, Any]:
+    def extract_fingerprint(
+        self, dataloader: DataLoader, dataset_name: str, n_samples: int = 1000
+    ) -> Dict[str, Any]:
         """Extract comprehensive fingerprint with multiple statistics"""
         all_latents = []
 
@@ -43,12 +43,12 @@ class DatasetFingerprinter:
 
         # Compute comprehensive statistics
         fingerprint = {
-            'name': dataset_name,
-            'mean': np.mean(all_latents, axis=0),
-            'std': np.std(all_latents, axis=0),
-            'cov': np.cov(all_latents.T),
-            'latents': all_latents,
-            'n_samples': len(all_latents),
+            "name": dataset_name,
+            "mean": np.mean(all_latents, axis=0),
+            "std": np.std(all_latents, axis=0),
+            "cov": np.cov(all_latents.T),
+            "latents": all_latents,
+            "n_samples": len(all_latents),
         }
 
         return fingerprint
@@ -58,26 +58,28 @@ class DatasetFingerprinter:
         metrics = {}
 
         # Basic distances
-        metrics['mean_euclidean'] = np.linalg.norm(fp1['mean'] - fp2['mean'])
-        metrics['mean_cosine'] = 1 - np.dot(fp1['mean'], fp2['mean']) / (np.linalg.norm(fp1['mean']) * np.linalg.norm(fp2['mean']) + 1e-8)
+        metrics["mean_euclidean"] = np.linalg.norm(fp1["mean"] - fp2["mean"])
+        metrics["mean_cosine"] = 1 - np.dot(fp1["mean"], fp2["mean"]) / (
+            np.linalg.norm(fp1["mean"]) * np.linalg.norm(fp2["mean"]) + 1e-8
+        )
 
         # Mahalanobis distance
         try:
-            pooled_cov = (fp1['cov'] + fp2['cov']) / 2
+            pooled_cov = (fp1["cov"] + fp2["cov"]) / 2
             inv_cov = np.linalg.inv(pooled_cov + 1e-6 * np.eye(pooled_cov.shape[0]))
-            diff = fp1['mean'] - fp2['mean']
-            metrics['mahalanobis'] = np.sqrt(diff.T @ inv_cov @ diff)
+            diff = fp1["mean"] - fp2["mean"]
+            metrics["mahalanobis"] = np.sqrt(diff.T @ inv_cov @ diff)
         except:
-            metrics['mahalanobis'] = np.nan
+            metrics["mahalanobis"] = np.nan
 
         # Covariance similarity
-        metrics['cov_frobenius'] = np.linalg.norm(fp1['cov'] - fp2['cov'], 'fro')
+        metrics["cov_frobenius"] = np.linalg.norm(fp1["cov"] - fp2["cov"], "fro")
 
         return metrics
 
-    def visualize_fingerprints(self,
-                               fingerprints: Dict[str, Dict],
-                               save_path: Optional[str] = None):
+    def visualize_fingerprints(
+        self, fingerprints: Dict[str, Dict], save_path: Optional[str] = None
+    ):
         """Visualisation of the fingerprints"""
         fig, axes = plt.subplots(2, 3, figsize=(18, 12))
 
@@ -99,7 +101,7 @@ class DatasetFingerprinter:
         plt.tight_layout()
 
         if save_path:
-            plt.savefig(save_path, dpi=150, bbox_inches='tight')
+            plt.savefig(save_path, dpi=150, bbox_inches="tight")
             print(f"Saved visualization to {save_path}")
 
         plt.show()
@@ -110,7 +112,7 @@ class DatasetFingerprinter:
         all_labels = []
 
         for name, fp in fingerprints.items():
-            latents = fp['latents'][:500]  # Subsample for speed
+            latents = fp["latents"][:500]  # Subsample for speed
             all_latents.append(latents)
             all_labels.extend([name] * len(latents))
 
@@ -122,53 +124,59 @@ class DatasetFingerprinter:
 
         for name in fingerprints.keys():
             mask = np.array([l == name for l in all_labels])
-            ax.scatter(latents_2d[mask, 0], latents_2d[mask, 1],
-                       label=name, alpha=0.6, s=10)
-        ax.set_title('t-SNE of Latent Codes')
+            ax.scatter(
+                latents_2d[mask, 0], latents_2d[mask, 1], label=name, alpha=0.6, s=10
+            )
+        ax.set_title("t-SNE of Latent Codes")
         ax.legend()
         ax.grid(True, alpha=0.3)
 
     def _plot_mean_vectors(self, ax, fingerprints):
         """Plot PCA of mean vectors"""
-        means = np.array([fp['mean'] for fp in fingerprints.values()])
+        means = np.array([fp["mean"] for fp in fingerprints.values()])
         names = list(fingerprints.keys())
 
         from sklearn.decomposition import PCA
+
         pca = PCA(n_components=2)
         means_2d = pca.fit_transform(means)
 
         ax.scatter(means_2d[:, 0], means_2d[:, 1], s=100, alpha=0.7)
         for i, name in enumerate(names):
-            ax.annotate(name, (means_2d[i, 0], means_2d[i, 1]),
-                        fontsize=9, ha='center')
-        ax.set_title('Dataset Means (PCA)')
+            ax.annotate(name, (means_2d[i, 0], means_2d[i, 1]), fontsize=9, ha="center")
+        ax.set_title("Dataset Means (PCA)")
         ax.grid(True, alpha=0.3)
 
     def _plot_std_devs(self, ax, fingerprints):
         """Plot average standard deviations"""
         names = list(fingerprints.keys())
-        mean_stds = [np.mean(fp['std']) for fp in fingerprints.values()]
+        mean_stds = [np.mean(fp["std"]) for fp in fingerprints.values()]
 
         bars = ax.bar(names, mean_stds)
-        ax.set_title('Average Latent Standard Deviation')
-        ax.set_ylabel('Mean σ')
-        ax.set_xticklabels(names, rotation=45, ha='right')
-        ax.grid(True, alpha=0.3, axis='y')
+        ax.set_title("Average Latent Standard Deviation")
+        ax.set_ylabel("Mean σ")
+        ax.set_xticklabels(names, rotation=45, ha="right")
+        ax.grid(True, alpha=0.3, axis="y")
 
         # Add value labels
         for bar in bars:
             height = bar.get_height()
-            ax.text(bar.get_x() + bar.get_width() / 2., height,
-                    f'{height:.3f}', ha='center', va='bottom')
+            ax.text(
+                bar.get_x() + bar.get_width() / 2.0,
+                height,
+                f"{height:.3f}",
+                ha="center",
+                va="bottom",
+            )
 
     def _plot_covariance(self, ax, fingerprints):
         """Plot average covariance matrix"""
-        mean_cov = np.mean([fp['cov'] for fp in fingerprints.values()], axis=0)
+        mean_cov = np.mean([fp["cov"] for fp in fingerprints.values()], axis=0)
 
-        im = ax.imshow(mean_cov, cmap='RdBu_r', aspect='auto')
-        ax.set_title('Mean Covariance Matrix')
-        ax.set_xlabel('Latent Dimension')
-        ax.set_ylabel('Latent Dimension')
+        im = ax.imshow(mean_cov, cmap="RdBu_r", aspect="auto")
+        ax.set_title("Mean Covariance Matrix")
+        ax.set_xlabel("Latent Dimension")
+        ax.set_ylabel("Latent Dimension")
         plt.colorbar(im, ax=ax)
 
     def _plot_distance_matrix(self, ax, fingerprints):
@@ -185,21 +193,29 @@ class DatasetFingerprinter:
                     dists = self.compare_fingerprints(
                         fingerprints[names[i]], fingerprints[names[j]]
                     )
-                    distance_matrix[i, j] = dists.get('mahalanobis', np.nan)
+                    distance_matrix[i, j] = dists.get("mahalanobis", np.nan)
 
-        im = ax.imshow(distance_matrix, cmap='YlOrRd', aspect='auto')
+        im = ax.imshow(distance_matrix, cmap="YlOrRd", aspect="auto")
         ax.set_xticks(range(n))
         ax.set_yticks(range(n))
-        ax.set_xticklabels(names, rotation=45, ha='right')
+        ax.set_xticklabels(names, rotation=45, ha="right")
         ax.set_yticklabels(names)
-        ax.set_title('Dataset Distance Matrix (Mahalanobis)')
+        ax.set_title("Dataset Distance Matrix (Mahalanobis)")
 
         # Add text annotations
         for i in range(n):
             for j in range(n):
                 if i != j:
-                    text = ax.text(j, i, f'{distance_matrix[i, j]:.2f}',
-                                   ha="center", va="center", color="black", fontsize=8)
+                    text = ax.text(
+                        j,
+                        i,
+                        f"{distance_matrix[i, j]:.2f}",
+                        ha="center",
+                        va="center",
+                        color="black",
+                        fontsize=8,
+                    )
+
 
 # class DatasetFingerprinterOld:
 #     """

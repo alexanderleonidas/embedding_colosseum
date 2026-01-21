@@ -1,16 +1,18 @@
 import os
-import torch
-from torch.utils.data import DataLoader, ConcatDataset
-from functools import partial
-import matplotlib.pyplot as plt
-
-from typing import Optional
-from pathlib import Path
 import pickle
+from functools import partial
+from pathlib import Path
+from typing import Optional
+
+import matplotlib.pyplot as plt
+import torch
+from dataset_fingerprinter import DatasetFingerprinter
+from torch.utils.data import ConcatDataset, DataLoader
+from vae import UniversalVAE, vae_loss
+
 from dataset.DataManager import DataManager
 from dataset.multimodal_dataset import MultiModalImageDataset
-from dataset_fingerprinter import DatasetFingerprinter
-from vae import UniversalVAE, vae_loss
+
 
 def custom_collate_fn(batch, max_channels: int = 16):
     """
@@ -37,9 +39,7 @@ def custom_collate_fn(batch, max_channels: int = 16):
     for img in images:
         if img.shape[0] < max_channels:
             padding = torch.zeros(
-                max_channels - img.shape[0],
-                img.shape[1],
-                img.shape[2]
+                max_channels - img.shape[0], img.shape[1], img.shape[2]
             )
             img_padded = torch.cat([img, padding], dim=0)
         elif img.shape[0] > max_channels:
@@ -62,16 +62,18 @@ def custom_collate_fn(batch, max_channels: int = 16):
     return batched_images
 
 
-def train_vae(vae: UniversalVAE,
-              train_loader: DataLoader,
-              val_loader: Optional[DataLoader] = None,
-              epochs: int = 100,
-              lr: float = 1e-4,
-              beta_start: float = 1.0,
-              beta_end: float = 4.0,
-              device: torch.device = torch.device('cpu'),
-              save_path: str = 'vae_checkpoint.pth',
-              patience: int = 10):
+def train_vae(
+    vae: UniversalVAE,
+    train_loader: DataLoader,
+    val_loader: Optional[DataLoader] = None,
+    epochs: int = 100,
+    lr: float = 1e-4,
+    beta_start: float = 1.0,
+    beta_end: float = 4.0,
+    device: torch.device = torch.device("cpu"),
+    save_path: str = "vae_checkpoint.pth",
+    patience: int = 10,
+):
     """
     Train the Universal VAE.
 
@@ -89,14 +91,19 @@ def train_vae(vae: UniversalVAE,
     """
     vae.to(device)
     optimizer = torch.optim.Adam(vae.parameters(), lr=lr, weight_decay=1e-5)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs, eta_min=1e-6)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer, T_max=epochs, eta_min=1e-6
+    )
     patience_counter = 0
 
-    best_val_loss = float('inf')
+    best_val_loss = float("inf")
     history = {
-        'train_loss': [], 'val_loss': [],
-        'train_recon': [], 'train_kl': [],
-        'beta_values': [], 'learning_rates': []
+        "train_loss": [],
+        "val_loss": [],
+        "train_recon": [],
+        "train_kl": [],
+        "beta_values": [],
+        "learning_rates": [],
     }
     # train_losses = []
     # val_losses = []
@@ -105,10 +112,14 @@ def train_vae(vae: UniversalVAE,
         # Training
         vae.train()
         # train_loss = 0
-        best_train_loss = float('inf')
-        train_metrics = {'total': 0, 'recon': 0, 'kl': 0}
+        best_train_loss = float("inf")
+        train_metrics = {"total": 0, "recon": 0, "kl": 0}
         # Linear Beta-Schedule
-        beta = beta_start + (beta_end - beta_start) * (epoch / (epochs-1)) if epochs > 1 else beta_end
+        beta = (
+            beta_start + (beta_end - beta_start) * (epoch / (epochs - 1))
+            if epochs > 1
+            else beta_end
+        )
 
         for batch_idx, batch in enumerate(train_loader):
             if isinstance(batch, (list, tuple)):
@@ -122,39 +133,40 @@ def train_vae(vae: UniversalVAE,
             recon_batch, mu, logvar = vae(data)
             losses = vae_loss(recon_batch, data, mu, logvar, beta)
 
-            losses['total'].backward()
+            losses["total"].backward()
             # train_loss += losses.item()
             # Gradient clipping for stability
             torch.nn.utils.clip_grad_norm_(vae.parameters(), max_norm=1.0)
             optimizer.step()
 
             batch_size = data.size(0)
-            train_metrics['total'] += losses['total'].item() / batch_size
-            train_metrics['recon'] += losses['recon'].item() / batch_size
-            train_metrics['kl'] += losses['kl'].item() / batch_size
+            train_metrics["total"] += losses["total"].item() / batch_size
+            train_metrics["recon"] += losses["recon"].item() / batch_size
+            train_metrics["kl"] += losses["kl"].item() / batch_size
 
             if batch_idx % 50 == 0:
-                print(f'Epoch {epoch + 1}/{epochs} [{batch_idx}/{len(train_loader)}] '
-                      f'Loss: {losses['total'].item() / batch_size:.4f}'
-                      f'(β={beta:.2f})')
+                print(
+                    f"Epoch {epoch + 1}/{epochs} [{batch_idx}/{len(train_loader)}] "
+                    f"Loss: {losses['total'].item() / batch_size:.4f}"
+                    f"(β={beta:.2f})"
+                )
 
         # Average training metrics
         for key in train_metrics:
             train_metrics[key] /= len(train_loader)
 
-        history['train_loss'].append(train_metrics['total'])
-        history['train_recon'].append(train_metrics['recon'])
-        history['train_kl'].append(train_metrics['kl'])
-        history['learning_rates'].append(optimizer.param_groups[0]['lr'])
+        history["train_loss"].append(train_metrics["total"])
+        history["train_recon"].append(train_metrics["recon"])
+        history["train_kl"].append(train_metrics["kl"])
+        history["learning_rates"].append(optimizer.param_groups[0]["lr"])
 
         # avg_train_loss = train_loss / len(train_loader.dataset)
         # train_losses.append(avg_train_loss)
 
-
         # Validation
         if val_loader is not None:
             vae.eval()
-            val_metrics = {'total': 0.0, 'recon': 0.0, 'kl': 0.0}
+            val_metrics = {"total": 0.0, "recon": 0.0, "kl": 0.0}
 
             with torch.no_grad():
                 for batch in val_loader:
@@ -168,37 +180,44 @@ def train_vae(vae: UniversalVAE,
                     val_losses = vae_loss(recon_batch, data, mu, logvar, beta).item()
 
                     batch_size = data.size(0)
-                    val_metrics['total'] += val_losses['total'].item() / batch_size
-                    val_metrics['recon'] += val_losses['recon'].item() / batch_size
-                    val_metrics['kl'] += val_losses['kl'].item() / batch_size
+                    val_metrics["total"] += val_losses["total"].item() / batch_size
+                    val_metrics["recon"] += val_losses["recon"].item() / batch_size
+                    val_metrics["kl"] += val_losses["kl"].item() / batch_size
 
             # Average validation metrics
             for key in val_metrics:
                 val_metrics[key] /= len(val_loader)
 
-            history['val_loss'].append(val_metrics['total'])
+            history["val_loss"].append(val_metrics["total"])
 
             print(f"\nEpoch {epoch + 1} Summary:")
-            print(f"  Train Loss: {train_metrics['total']:.4f} "
-                  f"(Recon: {train_metrics['recon']:.4f}, KL: {train_metrics['kl']:.4f})")
-            print(f"  Val Loss:   {val_metrics['total']:.4f} "
-                  f"(Recon: {val_metrics['recon']:.4f}, KL: {val_metrics['kl']:.4f})")
+            print(
+                f"  Train Loss: {train_metrics['total']:.4f} "
+                f"(Recon: {train_metrics['recon']:.4f}, KL: {train_metrics['kl']:.4f})"
+            )
+            print(
+                f"  Val Loss:   {val_metrics['total']:.4f} "
+                f"(Recon: {val_metrics['recon']:.4f}, KL: {val_metrics['kl']:.4f})"
+            )
             print(f"  β: {beta:.2f}, LR: {optimizer.param_groups[0]['lr']:.2e}")
             print("-" * 60)
 
             # Early stopping and model saving
-            if val_metrics['total'] < best_val_loss:
-                best_val_loss = val_metrics['total']
+            if val_metrics["total"] < best_val_loss:
+                best_val_loss = val_metrics["total"]
                 patience_counter = 0
 
-                torch.save({
-                    'epoch': epoch,
-                    'model_state_dict': vae.state_dict(),
-                    'optimizer_state_dict': optimizer.state_dict(),
-                    'loss': best_val_loss,
-                    'beta': beta,
-                    'history': history
-                }, save_path)
+                torch.save(
+                    {
+                        "epoch": epoch,
+                        "model_state_dict": vae.state_dict(),
+                        "optimizer_state_dict": optimizer.state_dict(),
+                        "loss": best_val_loss,
+                        "beta": beta,
+                        "history": history,
+                    },
+                    save_path,
+                )
                 print(f"Saved best model (val_loss: {best_val_loss:.4f})\n")
             else:
                 patience_counter += 1
@@ -226,7 +245,6 @@ def train_vae(vae: UniversalVAE,
             #     }, save_path)
             #     print(f'Saved best model to {save_path}')
         else:
-
             csv_file = "res_vae_results.csv"
             if not Path(csv_file).exists():
                 with open(csv_file, "w") as f:
@@ -234,18 +252,23 @@ def train_vae(vae: UniversalVAE,
             with open(csv_file, "a") as f:
                 f.write(f"{epoch},{history['train_loss'][epoch]}\n")
 
-            if train_metrics['total'] < best_train_loss:
-                best_loss = train_metrics['total']
-                torch.save({
-                    'epoch': epoch,
-                    'model_state_dict': vae.state_dict(),
-                    'optimizer_state_dict': optimizer.state_dict(),
-                    'loss': best_loss,
-                }, save_path)
-                print(f'Saved best model to {save_path}')
+            if train_metrics["total"] < best_train_loss:
+                best_loss = train_metrics["total"]
+                torch.save(
+                    {
+                        "epoch": epoch,
+                        "model_state_dict": vae.state_dict(),
+                        "optimizer_state_dict": optimizer.state_dict(),
+                        "loss": best_loss,
+                    },
+                    save_path,
+                )
+                print(f"Saved best model to {save_path}")
 
-            print(f"\nEpoch {epoch + 1}: Train Loss = {train_metrics['total']:.4f} "
-                  f"(β={beta:.2f})")
+            print(
+                f"\nEpoch {epoch + 1}: Train Loss = {train_metrics['total']:.4f} "
+                f"(β={beta:.2f})"
+            )
             print("-" * 60)
 
         # Update learning rate
@@ -253,37 +276,38 @@ def train_vae(vae: UniversalVAE,
 
     return history
 
-def plot_history(history: dict, save_path: str = 'training_history.png'):
+
+def plot_history(history: dict, save_path: str = "training_history.png"):
     # Plot training history
     fig, axes = plt.subplots(2, 2, figsize=(12, 8))
 
-    axes[0, 0].plot(history['train_loss'], label='Train Loss')
-    if 'val_loss' in history:
-        axes[0, 0].plot(history['val_loss'], label='Val Loss')
-    axes[0, 0].set_title('Training History')
-    axes[0, 0].set_xlabel('Epoch')
-    axes[0, 0].set_ylabel('Loss')
+    axes[0, 0].plot(history["train_loss"], label="Train Loss")
+    if "val_loss" in history:
+        axes[0, 0].plot(history["val_loss"], label="Val Loss")
+    axes[0, 0].set_title("Training History")
+    axes[0, 0].set_xlabel("Epoch")
+    axes[0, 0].set_ylabel("Loss")
     axes[0, 0].legend()
     axes[0, 0].grid(True, alpha=0.3)
 
-    axes[0, 1].plot(history['train_recon'], label='Reconstruction')
-    axes[0, 1].plot(history['train_kl'], label='KL Divergence')
-    axes[0, 1].set_title('Loss Components')
-    axes[0, 1].set_xlabel('Epoch')
-    axes[0, 1].set_ylabel('Loss')
+    axes[0, 1].plot(history["train_recon"], label="Reconstruction")
+    axes[0, 1].plot(history["train_kl"], label="KL Divergence")
+    axes[0, 1].set_title("Loss Components")
+    axes[0, 1].set_xlabel("Epoch")
+    axes[0, 1].set_ylabel("Loss")
     axes[0, 1].legend()
     axes[0, 1].grid(True, alpha=0.3)
 
-    axes[1, 0].plot(history['beta_values'])
-    axes[1, 0].set_title('β Schedule')
-    axes[1, 0].set_xlabel('Epoch')
-    axes[1, 0].set_ylabel('β Value')
+    axes[1, 0].plot(history["beta_values"])
+    axes[1, 0].set_title("β Schedule")
+    axes[1, 0].set_xlabel("Epoch")
+    axes[1, 0].set_ylabel("β Value")
     axes[1, 0].grid(True, alpha=0.3)
 
-    axes[1, 1].plot(history['learning_rates'])
-    axes[1, 1].set_title('Learning Rate Schedule')
-    axes[1, 1].set_xlabel('Epoch')
-    axes[1, 1].set_ylabel('Learning Rate')
+    axes[1, 1].plot(history["learning_rates"])
+    axes[1, 1].set_title("Learning Rate Schedule")
+    axes[1, 1].set_xlabel("Epoch")
+    axes[1, 1].set_ylabel("Learning Rate")
     axes[1, 1].grid(True, alpha=0.3)
 
     plt.tight_layout()
@@ -291,7 +315,13 @@ def plot_history(history: dict, save_path: str = 'training_history.png'):
     plt.show()
 
 
-def visualize_reconstructions(loader, vae_model, device, n_samples: int = 6, save_path: str = 'reconstructions.png'):
+def visualize_reconstructions(
+    loader,
+    vae_model,
+    device,
+    n_samples: int = 6,
+    save_path: str = "reconstructions.png",
+):
     vae_model.to(device)
     vae_model.eval()
     # Grab one batch
@@ -337,16 +367,17 @@ def visualize_reconstructions(loader, vae_model, device, n_samples: int = 6, sav
             return img
 
         axes[0, i].imshow(to_hwc(orig))
-        axes[0, i].set_title('Original')
-        axes[0, i].axis('off')
+        axes[0, i].set_title("Original")
+        axes[0, i].axis("off")
 
         axes[1, i].imshow(to_hwc(rec))
-        axes[1, i].set_title('Reconstruction')
-        axes[1, i].axis('off')
+        axes[1, i].set_title("Reconstruction")
+        axes[1, i].axis("off")
 
     plt.tight_layout()
     plt.savefig(save_path, dpi=150)
     plt.show()
+
 
 # ============================================================================
 # EXAMPLE USAGE
@@ -363,23 +394,40 @@ if __name__ == "__main__":
     BETA_END = 1.0
 
     if torch.cuda.is_available():
-        DEVICE = torch.device('cuda')
+        DEVICE = torch.device("cuda")
         print("Using CUDA")
     elif torch.backends.mps.is_available():
-        DEVICE = torch.device('mps')
+        DEVICE = torch.device("mps")
         print("Using MPS")
     else:
-        DEVICE = torch.device('cpu')
+        DEVICE = torch.device("cpu")
         print("Using CPU")
 
     # Load the datasets
     print("\n=== Loading Datasets ===")
-    dataset_names = ["mnist", "fashion", "cifar10", "stl10", "cxr8", "brain_tumor", "eurosat_ms"]
+    dataset_names = [
+        "mnist",
+        "fashion",
+        "cifar10",
+        "stl10",
+        "cxr8",
+        "brain_tumor",
+        "eurosat_ms",
+    ]
     datasets = []
     for d in dataset_names:
-        dm = DataManager(cfg=None, batch_size=BATCH_SIZE, seed=1, pixel_size=IMAGE_SIZE, dataset=d)
-        datasets.append(MultiModalImageDataset(dm.get_dataset(num_points=9000), MAX_CHANNELS, IMAGE_SIZE,
-                                      dataset_name=d, preserve_channels=True))
+        dm = DataManager(
+            cfg=None, batch_size=BATCH_SIZE, seed=1, pixel_size=IMAGE_SIZE, dataset=d
+        )
+        datasets.append(
+            MultiModalImageDataset(
+                dm.get_dataset(num_points=9000),
+                MAX_CHANNELS,
+                IMAGE_SIZE,
+                dataset_name=d,
+                preserve_channels=True,
+            )
+        )
 
     # Combine all datasets for universal VAE training
     combined_dataset = ConcatDataset(datasets)
@@ -387,12 +435,18 @@ if __name__ == "__main__":
     # CRITICAL: Use custom collate function to handle variable channels
     collate_fn = partial(custom_collate_fn, max_channels=MAX_CHANNELS)
 
-    train_loader = DataLoader(combined_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=4, collate_fn=collate_fn)
+    train_loader = DataLoader(
+        combined_dataset,
+        batch_size=BATCH_SIZE,
+        shuffle=True,
+        num_workers=4,
+        collate_fn=collate_fn,
+    )
 
     # Initialize VAE
-    vae = UniversalVAE(max_channels=MAX_CHANNELS,
-                       latent_dim=LATENT_DIM,
-                       image_size=IMAGE_SIZE)
+    vae = UniversalVAE(
+        max_channels=MAX_CHANNELS, latent_dim=LATENT_DIM, image_size=IMAGE_SIZE
+    )
 
     print(f"Model parameters: {sum(p.numel() for p in vae.parameters()):,}")
 
@@ -411,10 +465,10 @@ if __name__ == "__main__":
 
     # Load trained VAE
     # Load trained model (for demonstration, assume pre-trained)
-    load_model_path = 'results1/universal_vae.pth'
+    load_model_path = "results1/universal_vae.pth"
     if os.path.exists(load_model_path):
         checkpoint = torch.load(load_model_path, map_location=DEVICE)
-        vae.load_state_dict(checkpoint['model_state_dict'])
+        vae.load_state_dict(checkpoint["model_state_dict"])
         print("Loaded pre-trained VAE model.")
 
     # train_history_path = 'res.png'
@@ -427,8 +481,12 @@ if __name__ == "__main__":
     fingerprints = {}
     for ds, name in zip(datasets, dataset_names):
         # Use same collate function for individual datasets
-        loader = DataLoader(ds, batch_size=BATCH_SIZE, shuffle=False, collate_fn=collate_fn)
-        visualize_reconstructions(loader, vae, DEVICE, save_path=f'reconstructions_{name}.png')
+        loader = DataLoader(
+            ds, batch_size=BATCH_SIZE, shuffle=False, collate_fn=collate_fn
+        )
+        visualize_reconstructions(
+            loader, vae, DEVICE, save_path=f"reconstructions_{name}.png"
+        )
         fp = fingerprinter.extract_fingerprint(loader, name)
         fingerprints[name] = fp
 
@@ -443,25 +501,27 @@ if __name__ == "__main__":
     for name1 in fingerprints:
         for name2 in fingerprints:
             if name1 < name2:  # Avoid duplicates
-                distances = fingerprinter.compare_fingerprints(fingerprints[name1], fingerprints[name2])
-                results.append({'dataset1': name1, 'dataset2': name2, **distances})
+                distances = fingerprinter.compare_fingerprints(
+                    fingerprints[name1], fingerprints[name2]
+                )
+                results.append({"dataset1": name1, "dataset2": name2, **distances})
                 print(f"\n{name1} vs {name2}:")
                 for metric, value in distances.items():
                     print(f"  {metric}: {value:.4f}")
 
     # Visualize
     print("\n=== Generating Visualizations ===")
-    visualisations_path= 'results1/dataset_fingerprints_vae.png'
+    visualisations_path = "results1/dataset_fingerprints_vae.png"
     fingerprinter.visualize_fingerprints(fingerprints, save_path=visualisations_path)
 
     # Save fingerprints
-    fingerprints_path = 'results1/dataset_fingerprints_vae.pkl'
-    with open(fingerprints_path, 'wb') as f:
+    fingerprints_path = "results1/dataset_fingerprints_vae.pkl"
+    with open(fingerprints_path, "wb") as f:
         pickle.dump(fingerprints, f)
     print("\nSaved fingerprints to dataset_fingerprints.pkl")
 
-    comparison_results_path = 'results1/dataset_comparison_results_vae.pkl'
-    with open(comparison_results_path, 'wb') as f:
+    comparison_results_path = "results1/dataset_comparison_results_vae.pkl"
+    with open(comparison_results_path, "wb") as f:
         pickle.dump(results, f)
 
     print("\nTraining complete!")

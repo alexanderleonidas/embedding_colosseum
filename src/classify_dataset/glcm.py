@@ -1,12 +1,20 @@
-import torch
 import math
-import numpy as np
 
+import numpy as np
+import torch
 from skimage.feature import graycomatrix, graycoprops
+
 from dataset.DataManager import DataManager
 
 
-def glcm(image, distances=(1,), angles=(0, math.pi/4, math.pi/2, 3*math.pi/4), levels=256, symmetric=True, normed=True):
+def glcm(
+    image,
+    distances=(1,),
+    angles=(0, math.pi / 4, math.pi / 2, 3 * math.pi / 4),
+    levels=256,
+    symmetric=True,
+    normed=True,
+):
     """
     Compute GLCM stats for a single image.
 
@@ -61,7 +69,14 @@ def glcm(image, distances=(1,), angles=(0, math.pi/4, math.pi/2, 3*math.pi/4), l
         raise ValueError("Quantized image must be 2D before calling graycomatrix")
 
     # Compute GLCM and averaged properties
-    glcm_mat = graycomatrix(quant, distances=distances, angles=angles, levels=levels, symmetric=symmetric, normed=normed)
+    glcm_mat = graycomatrix(
+        quant,
+        distances=distances,
+        angles=angles,
+        levels=levels,
+        symmetric=symmetric,
+        normed=normed,
+    )
 
     homogeneity = float(np.mean(graycoprops(glcm_mat, "homogeneity")))
     energy = float(np.mean(graycoprops(glcm_mat, "energy")))
@@ -69,15 +84,20 @@ def glcm(image, distances=(1,), angles=(0, math.pi/4, math.pi/2, 3*math.pi/4), l
 
     return {"homogeneity": homogeneity, "energy": energy, "correlation": correlation}
 
+
 if __name__ == "__main__":
-    dm = DataManager(cfg=None, batch_size=100, seed=42, pixel_size=120, dataset="fashion")
+    dm = DataManager(
+        cfg=None, batch_size=100, seed=42, pixel_size=120, dataset="fashion"
+    )
     train, _, _ = dm.get_loaders(1, 0, 0)
     for imgs, labels in train:
         for i in range(imgs.size(0)):
             img = imgs[i]
             print(img.size())
             glcm_stats = glcm(img)
-            print(f"Image {i}: GLCM Homogeneity={glcm_stats['homogeneity']:.4f}, Energy={glcm_stats['energy']:.4f}, Correlation={glcm_stats['correlation']:.4f}")
+            print(
+                f"Image {i}: GLCM Homogeneity={glcm_stats['homogeneity']:.4f}, Energy={glcm_stats['energy']:.4f}, Correlation={glcm_stats['correlation']:.4f}"
+            )
         break
     # save_results = True
     # datasets = ["mnist", "fashion", "cifar10", "stl10", "cxr8", "brain_tumor", "eurosat_rgb"]

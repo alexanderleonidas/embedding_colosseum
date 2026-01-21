@@ -1,22 +1,24 @@
 import ast
+import csv
+import os
 import pickle
 import time
 from collections import defaultdict
 from typing import Dict, List
-from matplotlib import pyplot as plt
+
+import numpy as np
 import seaborn as sns
-from sklearn.manifold import TSNE
-from dataset.DataManager import DataManager
 import torch
 import tqdm
-import numpy as np
-from torch.utils.data import DataLoader
-from shannon_entropy import shannon_entropy
 from edge_density import edge_density
-from phase_correlation import compute_symmetry_score
 from glcm import glcm
-import os
-import csv
+from matplotlib import pyplot as plt
+from phase_correlation import compute_symmetry_score
+from shannon_entropy import shannon_entropy
+from sklearn.manifold import TSNE
+from torch.utils.data import DataLoader
+
+from dataset.DataManager import DataManager
 
 
 def extract_features_vectors(dataloader: DataLoader, normalise: bool = True) -> dict:
@@ -45,7 +47,9 @@ def extract_features_vectors(dataloader: DataLoader, normalise: bool = True) -> 
     print(f"Computing Feature Vectors...")
     # Process batches
     with torch.no_grad():
-        for batch_idx, batch_data in enumerate(tqdm.tqdm(dataloader, desc="Processing images")):
+        for batch_idx, batch_data in enumerate(
+            tqdm.tqdm(dataloader, desc="Processing images")
+        ):
             # Handle different DataLoader return formats
             images, labels = batch_data[0], batch_data[1]
 
@@ -69,26 +73,35 @@ def extract_features_vectors(dataloader: DataLoader, normalise: bool = True) -> 
                 phase_corr = compute_symmetry_score(image)
                 glcm_stats = glcm(image)
 
-
                 # Append feature to class specific list
-                feature_vector = np.array([entropy, density, phase_corr, glcm_stats['homogeneity'], glcm_stats['correlation'], glcm_stats['energy']])
+                feature_vector = np.array(
+                    [
+                        entropy,
+                        density,
+                        phase_corr,
+                        glcm_stats["homogeneity"],
+                        glcm_stats["correlation"],
+                        glcm_stats["energy"],
+                    ]
+                )
                 feature_vectors.append(feature_vector)
 
                 # Store label if available
                 if labels is not None:
-                    label = labels[i].item() if torch.is_tensor(labels[i]) else labels[i]
+                    label = (
+                        labels[i].item() if torch.is_tensor(labels[i]) else labels[i]
+                    )
                     all_labels.append(label)
                     class_specific_feature_vectors[label].append(feature_vector)
-
 
     # Compute overall statistics
     if feature_vectors:
         f_vec = np.vstack(feature_vectors)
         results = {
-            'feature_vectors': feature_vectors,
-            'mean_vector': f_vec.mean(axis=0).tolist(),
-            'std_vector': f_vec.std(axis=0).tolist(),
-            'covariance': np.cov(f_vec, rowvar=False).tolist(),
+            "feature_vectors": feature_vectors,
+            "mean_vector": f_vec.mean(axis=0).tolist(),
+            "std_vector": f_vec.std(axis=0).tolist(),
+            "covariance": np.cov(f_vec, rowvar=False).tolist(),
         }
 
     if class_specific_feature_vectors:
@@ -96,32 +109,44 @@ def extract_features_vectors(dataloader: DataLoader, normalise: bool = True) -> 
         for c, f in class_specific_feature_vectors.items():
             fc_vec = np.vstack(f)
             per_class_stats[c] = {
-                'features_vectors': fc_vec.tolist(),
-                'mean_vector': fc_vec.mean(axis=0).tolist(),
-                'std_vector': fc_vec.std(axis=0).tolist(),
-                'covariance': np.cov(fc_vec, rowvar=False).tolist(),
-                'count': len(feature_vectors)
+                "features_vectors": fc_vec.tolist(),
+                "mean_vector": fc_vec.mean(axis=0).tolist(),
+                "std_vector": fc_vec.std(axis=0).tolist(),
+                "covariance": np.cov(fc_vec, rowvar=False).tolist(),
+                "count": len(feature_vectors),
             }
-        results['per_class_stats'] = per_class_stats
+        results["per_class_stats"] = per_class_stats
 
     return results
 
-def save_dataset_fingerprint_results_to_csv(results: dict, dataset: str, pixel_size: int, file_name: str):
+
+def save_dataset_fingerprint_results_to_csv(
+    results: dict, dataset: str, pixel_size: int, file_name: str
+):
     file_exists = os.path.isfile(file_name)
-    with open(file_name, mode='a', newline='') as csvfile:
-        fieldnames = ['dataset', 'pixel_size', 'mean_vector', 'std_vector', 'covariance']
+    with open(file_name, mode="a", newline="") as csvfile:
+        fieldnames = [
+            "dataset",
+            "pixel_size",
+            "mean_vector",
+            "std_vector",
+            "covariance",
+        ]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
         if not file_exists:
             writer.writeheader()
 
-        writer.writerow({
-            'dataset': dataset,
-            'pixel_size': pixel_size,
-            'mean_vector': results.get('mean_vector'),
-            'std_vector': results.get('std_vector'),
-            'covariance': results.get('covariance')
-        })
+        writer.writerow(
+            {
+                "dataset": dataset,
+                "pixel_size": pixel_size,
+                "mean_vector": results.get("mean_vector"),
+                "std_vector": results.get("std_vector"),
+                "covariance": results.get("covariance"),
+            }
+        )
+
 
 def save_class_specific_results_npz(results: Dict, file_name: str) -> str:
     """
@@ -132,14 +157,14 @@ def save_class_specific_results_npz(results: Dict, file_name: str) -> str:
     - A top-level 'classes' array lists the class labels (as strings).
     Returns the `file_path`.
     """
-    if not isinstance(results, dict) or 'per_class_stats' not in results:
+    if not isinstance(results, dict) or "per_class_stats" not in results:
         raise ValueError("`results` must be a dict containing a 'per_class_stats' key")
 
-    per_class = results['per_class_stats']
+    per_class = results["per_class_stats"]
     if not per_class:
         raise ValueError("`per_class_stats` is empty")
 
-    with open(file_name, mode='wb') as f:
+    with open(file_name, mode="wb") as f:
         pickle.dump(per_class, f)
 
     # with open(file_name, mode='rb') as f:
@@ -154,7 +179,7 @@ def save_class_specific_results_npz(results: Dict, file_name: str) -> str:
 
 
 def mahalanobis_distance_between_means(
-mean1, cov1, mean2, cov2, regularization: float = 1e-6, use_pooled: bool = True
+    mean1, cov1, mean2, cov2, regularization: float = 1e-6, use_pooled: bool = True
 ) -> float:
     m1 = np.asarray(mean1, dtype=float)
     m2 = np.asarray(mean2, dtype=float)
@@ -175,7 +200,9 @@ mean1, cov1, mean2, cov2, regularization: float = 1e-6, use_pooled: bool = True
     return float(np.sqrt(max(dist_sq, 0.0)))
 
 
-def compute_pairwise_mahalanobis(results_map: Dict[str, dict], regularization: float = 1e-6, use_pooled: bool = True):
+def compute_pairwise_mahalanobis(
+    results_map: Dict[str, dict], regularization: float = 1e-6, use_pooled: bool = True
+):
     names = list(results_map.keys())
     n = len(names)
     mat = np.zeros((n, n), dtype=float)
@@ -184,18 +211,31 @@ def compute_pairwise_mahalanobis(results_map: Dict[str, dict], regularization: f
             ra = results_map[names[i]]
             rb = results_map[names[j]]
             dist = mahalanobis_distance_between_means(
-                ra['mean_vector'], ra['covariance'],
-                rb['mean_vector'], rb['covariance'],
-                regularization=regularization, use_pooled=use_pooled
+                ra["mean_vector"],
+                ra["covariance"],
+                rb["mean_vector"],
+                rb["covariance"],
+                regularization=regularization,
+                use_pooled=use_pooled,
             )
             mat[i, j] = mat[j, i] = dist
     return names, mat
 
 
-def plot_mahalanobis_heatmap(names, matrix, out_file: str = None, figsize=(8, 6), cmap='YlOrRd'):
+def plot_mahalanobis_heatmap(
+    names, matrix, out_file: str = None, figsize=(8, 6), cmap="YlOrRd"
+):
     plt.figure(figsize=figsize)
     # sns.set(style="white")
-    ax = sns.heatmap(matrix, xticklabels=names, yticklabels=names, cmap=cmap, annot=True, fmt=".3f", square=True)
+    ax = sns.heatmap(
+        matrix,
+        xticklabels=names,
+        yticklabels=names,
+        cmap=cmap,
+        annot=True,
+        fmt=".3f",
+        square=True,
+    )
     plt.title("Pairwise Mahalanobis Distance Heatmap")
     plt.tight_layout()
     if out_file:
@@ -203,7 +243,9 @@ def plot_mahalanobis_heatmap(names, matrix, out_file: str = None, figsize=(8, 6)
     plt.show()
 
 
-def get_feature_vectors(dataset_results: Dict[str, dict], num_vectors_per_dataset: int) -> tuple[np.ndarray, list]:
+def get_feature_vectors(
+    dataset_results: Dict[str, dict], num_vectors_per_dataset: int
+) -> tuple[np.ndarray, list]:
     """
     Extract a specified number of feature vectors from all datasets in dataset_results.
 
@@ -219,19 +261,25 @@ def get_feature_vectors(dataset_results: Dict[str, dict], num_vectors_per_datase
     for dataset_name, results in dataset_results.items():
         dataset_vectors = []
         dataset_labels = []
-        for class_label, stats in results['per_class_stats'].items():
-            dataset_vectors.extend(np.array(stats['features_vectors']))
-            dataset_labels.extend([dataset_name] * len(stats['features_vectors']))
+        for class_label, stats in results["per_class_stats"].items():
+            dataset_vectors.extend(np.array(stats["features_vectors"]))
+            dataset_labels.extend([dataset_name] * len(stats["features_vectors"]))
 
-        indexs = np.random.choice(np.arange(0, len(dataset_vectors) - 1), num_vectors_per_dataset,
-                                  replace=False)
+        indexs = np.random.choice(
+            np.arange(0, len(dataset_vectors) - 1),
+            num_vectors_per_dataset,
+            replace=False,
+        )
         for i in indexs:
             vectors.append(dataset_vectors[i])
             labels.append(dataset_labels[i])
 
     return np.array(vectors), labels
 
-def plot_tsne(feature_vectors, labels=None, out_file: str = None, figsize=(8, 6), perplexity=30):
+
+def plot_tsne(
+    feature_vectors, labels=None, out_file: str = None, figsize=(8, 6), perplexity=30
+):
     """
     Plot TSNE visualization of feature vectors.
 
@@ -252,7 +300,13 @@ def plot_tsne(feature_vectors, labels=None, out_file: str = None, figsize=(8, 6)
         colors = plt.cm.viridis(np.linspace(0, 1, len(unique_labels)))
         for i, label in enumerate(unique_labels):
             mask = np.array(labels) == label
-            plt.scatter(tsne_results[mask, 0], tsne_results[mask, 1], color=colors[i], label=str(label), alpha=0.7)
+            plt.scatter(
+                tsne_results[mask, 0],
+                tsne_results[mask, 1],
+                color=colors[i],
+                label=str(label),
+                alpha=0.7,
+            )
         plt.legend()
     else:
         plt.scatter(tsne_results[:, 0], tsne_results[:, 1], alpha=0.7)
@@ -262,6 +316,7 @@ def plot_tsne(feature_vectors, labels=None, out_file: str = None, figsize=(8, 6)
         plt.savefig(out_file, dpi=200)
     plt.show()
 
+
 def load_results(run_id):
     """
     Load dataset fingerprint results from CSV and class-specific results from pickle files.
@@ -270,21 +325,31 @@ def load_results(run_id):
     with open(f"{run_id}_dataset_fingerprint_results.csv", "r") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            dataset_fingerprints[row['dataset']] = {
-                'mean_vector': ast.literal_eval(row['mean_vector']),
-                'std_vector': ast.literal_eval(row['std_vector']),
-                'covariance': ast.literal_eval(row['covariance'])
+            dataset_fingerprints[row["dataset"]] = {
+                "mean_vector": ast.literal_eval(row["mean_vector"]),
+                "std_vector": ast.literal_eval(row["std_vector"]),
+                "covariance": ast.literal_eval(row["covariance"]),
             }
     for d in datasets:
-        dataset_fingerprints[d]['per_class_stats'] = pickle.load(
-            open(f"{run_id}_class_specific_feature_vectors_results_{d}_{128}.pkl", "rb"))
+        dataset_fingerprints[d]["per_class_stats"] = pickle.load(
+            open(f"{run_id}_class_specific_feature_vectors_results_{d}_{128}.pkl", "rb")
+        )
 
     return dataset_fingerprints
+
 
 # Example usage
 if __name__ == "__main__":
     run_id = time.strftime("%Y%m%d-%H%M%S")
-    datasets = ["mnist", "fashion", "cifar10", "stl10", "cxr8", "brain_tumor", "eurosat_rgb"]
+    datasets = [
+        "mnist",
+        "fashion",
+        "cifar10",
+        "stl10",
+        "cxr8",
+        "brain_tumor",
+        "eurosat_rgb",
+    ]
     pixel_sizes = [128]
     dataset_results = {}
     # for d in datasets:
@@ -307,9 +372,5 @@ if __name__ == "__main__":
     dataset_fingerprints = load_results("hand_picked_results/20260119-174435")
     names, mat = compute_pairwise_mahalanobis(dataset_fingerprints)
     plot_mahalanobis_heatmap(names, mat, out_file=f"{run_id}_mahalanobis_heatmap.png")
-    random_vectors, random_labels  = get_feature_vectors(dataset_fingerprints, 1000)
+    random_vectors, random_labels = get_feature_vectors(dataset_fingerprints, 1000)
     plot_tsne(random_vectors, out_file=f"{run_id}_tsne.png", labels=random_labels)
-
-
-
-

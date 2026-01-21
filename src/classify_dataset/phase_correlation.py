@@ -4,8 +4,8 @@ import tqdm
 from scipy import ndimage
 from scipy.fft import fft2, ifft2
 
-
 from dataset.DataManager import DataManager
+
 
 def phase_correlation(image, ref_image):
     """
@@ -52,8 +52,18 @@ def compute_symmetry_score(image):
 
 # Example usage
 if __name__ == "__main__":
-    for dataset_name in ["mnist", "fashion", "cifar10", "stl10", "cxr8", "brain_tumor", "eurosat_ms"]:
-        dm = DataManager(cfg=None, batch_size=100, seed=42, pixel_size=256, dataset=dataset_name)
+    for dataset_name in [
+        "mnist",
+        "fashion",
+        "cifar10",
+        "stl10",
+        "cxr8",
+        "brain_tumor",
+        "eurosat_ms",
+    ]:
+        dm = DataManager(
+            cfg=None, batch_size=100, seed=42, pixel_size=256, dataset=dataset_name
+        )
         train, _, _ = dm.get_loaders(1, 0, 0)
         results = []
 
@@ -68,5 +78,7 @@ if __name__ == "__main__":
                 # print(f"Image {i}: Phase Correlation Symmetry={pc_sym:.4f}")
         results = np.array(results)
         print(f"dataset: {dataset_name}")
-        print(f"Phase Correlation Symmetry - Mean: {results.mean():.4f}, Std: {results.std():.4f}")
+        print(
+            f"Phase Correlation Symmetry - Mean: {results.mean():.4f}, Std: {results.std():.4f}"
+        )
         print(f"Max: {results.max():.4f}, Min: {results.min():.4f}")

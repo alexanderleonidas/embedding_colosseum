@@ -1,6 +1,8 @@
-import torch
 import numpy as np
+import torch
+
 from dataset.DataManager import DataManager
+
 
 def shannon_entropy(image, bins=256, normalise=True) -> float:
     """
@@ -47,9 +49,19 @@ def shannon_entropy(image, bins=256, normalise=True) -> float:
 
 
 # Example usage
-if __name__ == '__main__':
-    for dataset_name in ["mnist", "fashion", "cifar10", "stl10", "cxr8", "brain_tumor", "eurosat_rgb"]:
-        dm = DataManager(cfg=None, batch_size=100, seed=42, pixel_size=120, dataset=dataset_name)
+if __name__ == "__main__":
+    for dataset_name in [
+        "mnist",
+        "fashion",
+        "cifar10",
+        "stl10",
+        "cxr8",
+        "brain_tumor",
+        "eurosat_rgb",
+    ]:
+        dm = DataManager(
+            cfg=None, batch_size=100, seed=42, pixel_size=120, dataset=dataset_name
+        )
         train, _, _ = dm.get_loaders(1.0, 0, 0)
         results = []
         for batch_idx, data in enumerate(train):
